@@ -1,6 +1,6 @@
 import {trackingService} from '../src/service';
 import {expect} from 'chai';
-import {Property} from '../src/domain';
+import {TrackProperty} from '../src/domain/track_property';
 
 describe('Test tracking api key', () => {
   const trackId = 'trace_id_test';
@@ -10,24 +10,24 @@ describe('Test tracking api key', () => {
 
   const defaultValues = {
     diPlatform: 'web',
-    di_lib_version: '0.0.1',
-    di_tracking_id: trackId,
-    di_user_id: userId,
-    di_start_time: 0,
-    di_duration: 0,
-    di_time: Date.now()
-  } as Property;
+    diLibVersion: '0.0.1',
+    diTrackingId: trackId,
+    diUserId: userId,
+    diStartTime: 0,
+    diDuration: 0,
+    diTime: Date.now()
+  } as TrackProperty;
 
   const defaultEngageValues = {
     diPlatform: 'web',
-    di_lib_version: '0.0.1',
-    di_tracking_id: trackId,
-    di_user_id: userId,
-    di_start_time: 0,
-    di_duration: 0,
-    di_time: Date.now(),
-    birth_date: Date.now(),
-  } as Property;
+    diLibVersion: '0.0.1',
+    diTrackingId: trackId,
+    diUserId: userId,
+    diStartTime: 0,
+    diDuration: 0,
+    diTime: Date.now(),
+    birthDate: 0
+  } as TrackProperty;
 
   it('Should generate api key success', async () => {
     const trackId = await trackingService.genTrackId(apiKey);
@@ -43,7 +43,7 @@ describe('Test tracking api key', () => {
       unit: 'USD',
       color: 'Red',
       connectivity: ['3G', '4G', '5G', 'Ethernet'],
-      diUserId: userId,
+      ...{diUserId: userId},
       createdAt: Date.now(),
       ...defaultValues
     });
