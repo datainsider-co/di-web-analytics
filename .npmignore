@@ -1,0 +1,7 @@
+/src
+/examples
+/tests
+tsconfig.json
+.eslintrc.json
+.prettierrc
+.editorconfig
