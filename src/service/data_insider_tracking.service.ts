@@ -1,6 +1,6 @@
 import {TrackingService} from './tracking.service';
 import {Property} from '../domain';
-import {TrackingRepository} from '../repository';
+import {dataInsiderTrackingRepository, TrackingRepository} from '../repository';
 
 export class DataInsiderTrackingService extends TrackingService {
   constructor(private readonly trackingRepository: TrackingRepository) {
@@ -19,4 +19,6 @@ export class DataInsiderTrackingService extends TrackingService {
     return this.trackingRepository.track(trackingApiKey, event, properties);
   }
 }
+
+export const trackingService: TrackingService = new DataInsiderTrackingService(dataInsiderTrackingRepository);
 

@@ -8,9 +8,20 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "outDir": "./dist",
-    "types": ["mocha"],
-    "lib": ["ESNext", "DOM", "DOM.Iterable"]
+    "types": [
+      "mocha"
+    ],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "tests"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "tests"
+  ]
 }

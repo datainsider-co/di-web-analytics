@@ -37,7 +37,7 @@ class HttpClient extends BaseClient {
     return this.client
     .post<string>(path, body, {...config})
     .then(HttpClient.getData)
-    .catch(ex => HttpClient.handleError(path, ex));
+    .catch((ex) => HttpClient.handleError(path, ex));
   }
 
   put(path: string, body?: any, config: { params?: any, headers?: any } = {}): Promise<string> {
@@ -77,6 +77,9 @@ const _clientConfig: AxiosRequestConfig = {
 
 export const baseClient: BaseClient = new HttpClient(
   Axios.create({
-    ..._clientConfig
+    ..._clientConfig,
+    transformRequest: data => {
+      return MiniJson.toJson(data);
+    }
   })
 );

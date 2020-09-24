@@ -1,6 +1,6 @@
 import {TrackingRepository} from './tracking.repository';
 import {Property} from '../domain';
-import {BaseClient} from '../service';
+import {baseClient, BaseClient} from '../service';
 
 export class DataInsiderTrackingRepository extends TrackingRepository {
 
@@ -29,3 +29,4 @@ export class DataInsiderTrackingRepository extends TrackingRepository {
   }
 }
 
+export const dataInsiderTrackingRepository: TrackingRepository = new DataInsiderTrackingRepository(baseClient);
