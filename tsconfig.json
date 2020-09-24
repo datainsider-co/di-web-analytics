@@ -14,7 +14,7 @@
     "lib": [
       "ESNext",
       "DOM",
-      "DOM.Iterable"
+      "DOM.Iterable",
     ]
   },
   "include": [

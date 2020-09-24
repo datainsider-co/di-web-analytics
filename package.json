@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "axios": "^0.20.0",
+    "js-cookies": "^1.0.4",
     "mini-json": "^1.0.0"
   }
 }
