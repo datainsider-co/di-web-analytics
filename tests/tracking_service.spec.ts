@@ -1,8 +1,7 @@
-import {trackingService} from '../src/service';
-import {expect} from 'chai';
-import {TrackProperty} from '../src/domain/track_property';
+import { trackingService } from '../src/service';
+import { expect } from 'chai';
 
-describe('Test tracking api key', () => {
+describe('Test tracking service', () => {
   const trackId = 'trace_id_test';
 
   const apiKey = 'test_api_key';
@@ -16,7 +15,7 @@ describe('Test tracking api key', () => {
     diStartTime: 0,
     diDuration: 0,
     diTime: Date.now()
-  } as TrackProperty;
+  };
 
   const defaultEngageValues = {
     diPlatform: 'web',
@@ -27,7 +26,7 @@ describe('Test tracking api key', () => {
     diDuration: 0,
     diTime: Date.now(),
     birthDate: 0
-  } as TrackProperty;
+  };
 
   it('Should generate api key success', async () => {
     const trackId = await trackingService.genTrackId(apiKey);
@@ -43,7 +42,7 @@ describe('Test tracking api key', () => {
       unit: 'USD',
       color: 'Red',
       connectivity: ['3G', '4G', '5G', 'Ethernet'],
-      ...{diUserId: userId},
+      ...{ diUserId: userId },
       createdAt: Date.now(),
       ...defaultValues
     });
@@ -53,15 +52,18 @@ describe('Test tracking api key', () => {
 
   it('Should engage is success', async () => {
     const trackId = await trackingService.engage(apiKey, userId, {
-      name: 'Vi Chi Thien',
+      displayName: 'Vi Chi Thien',
+      firstName: 'Thien',
+      lastName: 'Thien',
       age: 18,
-      languageCode: 'vi',
+      email: 'tvc12@gmail.com',
+      gender: 'male',
       countryCode: 'vn',
-      location: 'HCM city',
-      updatedAt: Date.now(),
+      updatedTime: Date.now(),
+      createdTime: Date.now(),
       ...defaultEngageValues
     });
-    console.log('track::trackId::', trackId);
+    console.log('engage::trackId::', trackId);
     expect(trackId).not.undefined;
   });
 });

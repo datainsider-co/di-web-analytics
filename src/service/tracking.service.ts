@@ -1,10 +1,10 @@
-import {Property} from '../domain';
-import {TrackProperty} from '../domain/track_property';
+
+import { Properties } from 'src/domain';
 
 export abstract class TrackingService {
-  abstract genTrackId(trackingApiKey: string): Promise<string | undefined>;
+  abstract genTrackId(trackingApiKey: string): Promise<string>;
 
-  abstract track(trackingApiKey: string, event: string, properties: TrackProperty): Promise<string | undefined>;
+  abstract track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
 
-  abstract engage(trackingApiKey: string, userId: string, properties: TrackProperty): Promise<string | undefined>;
+  abstract engage(trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
 }

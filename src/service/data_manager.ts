@@ -1,11 +1,11 @@
-import {Property} from '../domain';
+import { Properties as Properties } from '../domain';
 import MiniJson from 'mini-json';
 
-export abstract class DataManager {
-  static readonly API_KEY = 'api_key';
-  static readonly DEFAULT_PROPERTY = 'default_property';
-  static readonly TRACK_ID = 'track_id';
-  static readonly USER_ID = 'user_id';
+export class DataManager {
+  static readonly API_KEY = 'di_tracking_api_key';
+  static readonly TRACK_ID = 'di_tracking_id';
+  static readonly USER_ID = 'di_tracking_user_id';
+  static readonly GLOBAL_PROPERTIES = 'global_properties';
 
   static setApiKey(apiKey: string): void {
     localStorage.setItem(DataManager.API_KEY, apiKey);
@@ -19,22 +19,22 @@ export abstract class DataManager {
     localStorage.removeItem(DataManager.API_KEY);
   }
 
-  static setDefaultProperty(property: Property): void {
-    const raw = MiniJson.toJson(property);
-    localStorage.setItem(DataManager.DEFAULT_PROPERTY, raw);
+  static setGlobalProperties(properties: Properties): void {
+    const json = MiniJson.toJson(properties);
+    localStorage.setItem(DataManager.GLOBAL_PROPERTIES, json);
   }
 
-  static getDefaultProperty(): Property | undefined {
-    const raw = localStorage.getItem(DataManager.DEFAULT_PROPERTY);
+  static getGlobalPropertes(): Properties {
+    const raw = localStorage.getItem(DataManager.GLOBAL_PROPERTIES);
     if (raw) {
       return MiniJson.fromJson(raw);
     } else {
-      return void 0;
+      return {};
     }
   }
 
   static removeDefaultProperty() {
-    localStorage.removeItem(DataManager.DEFAULT_PROPERTY);
+    localStorage.removeItem(DataManager.GLOBAL_PROPERTIES);
   }
 
   static getTrackId(): string | undefined {

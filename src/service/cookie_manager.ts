@@ -22,14 +22,14 @@ class CookieMangerImpl extends CookieManger {
     const nameLenPlus = key.length + 1;
     return (
       document.cookie
-      .split(';')
-      .map(c => c.trim())
-      .filter(cookie => {
-        return cookie.substring(0, nameLenPlus) === `${key}=`;
-      })
-      .map(cookie => {
-        return decodeURIComponent(cookie.substring(nameLenPlus));
-      })[0] || undefined
+        .split(';')
+        .map(c => c.trim())
+        .filter(cookie => {
+          return cookie.substring(0, nameLenPlus) === `${key}=`;
+        })
+        .map(cookie => {
+          return decodeURIComponent(cookie.substring(nameLenPlus));
+        })[0] || undefined
     );
   }
 
