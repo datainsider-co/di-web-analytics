@@ -12,7 +12,7 @@ const DI_DURATION = 'di_duration';
 const DI_TIME = 'di_time';
 
 
-export default class DiAnalytics {
+export class DiAnalytics {
   private static instance: DiAnalyticsLib;
 
   //TODO: Clear additional data & queue... etc
