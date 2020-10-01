@@ -2,21 +2,26 @@ import { Properties as Properties } from '../domain';
 import MiniJson from 'mini-json';
 
 export class DataManager {
-  static readonly API_KEY = 'di_tracking_api_key';
-  static readonly TRACK_ID = 'di_tracking_id';
+  static readonly TRACKING_API_KEY = 'di_tracking_api_key';
+  static readonly TRACKING_ID = 'di_tracking_id';
   static readonly USER_ID = 'di_tracking_user_id';
-  static readonly GLOBAL_PROPERTIES = 'global_properties';
+  static readonly GLOBAL_PROPERTIES = 'di_tracking_global_properties';
 
-  static setApiKey(apiKey: string): void {
-    localStorage.setItem(DataManager.API_KEY, apiKey);
+  static reset() {
+    this.deleteUserId();
+    this.deleteGlobalProperties();
   }
 
-  static getApiKey(): string | undefined {
-    return localStorage.getItem(DataManager.API_KEY) || void 0;
+  static setTrackingApiKey(apiKey: string): void {
+    localStorage.setItem(DataManager.TRACKING_API_KEY, apiKey);
   }
 
-  static removeApiKey(): void {
-    localStorage.removeItem(DataManager.API_KEY);
+  static getTrackingApiKey(): string | undefined {
+    return localStorage.getItem(DataManager.TRACKING_API_KEY) || void 0;
+  }
+
+  static deleteTrackingApiKey(): void {
+    localStorage.removeItem(DataManager.TRACKING_API_KEY);
   }
 
   static setGlobalProperties(properties: Properties): void {
@@ -33,23 +38,31 @@ export class DataManager {
     }
   }
 
-  static removeDefaultProperty() {
+  static deleteGlobalProperties() {
     localStorage.removeItem(DataManager.GLOBAL_PROPERTIES);
   }
 
-  static getTrackId(): string | undefined {
-    return localStorage.getItem(DataManager.TRACK_ID) || void 0;
+  static getTrackingId(): string | undefined {
+    return localStorage.getItem(DataManager.TRACKING_ID) || void 0;
   }
 
-  static setTrackId(trackId: string) {
-    localStorage.setItem(DataManager.TRACK_ID, trackId);
+  static setTrackingId(trackId: string) {
+    localStorage.setItem(DataManager.TRACKING_ID, trackId);
+  }
+
+  static deleteTrackingId() {
+    localStorage.removeItem(DataManager.TRACKING_ID);
   }
 
   static setUserId(userId: string): void {
-    localStorage.setItem(this.USER_ID, userId);
+    localStorage.setItem(DataManager.USER_ID, userId);
   }
 
   static getUserId(): string | undefined {
-    return localStorage.getItem(this.USER_ID) || void 0;
+    return localStorage.getItem(DataManager.USER_ID) || void 0;
+  }
+
+  static deleteUserId() {
+    localStorage.removeItem(DataManager.USER_ID);
   }
 }

@@ -3,59 +3,71 @@ import { DataManager } from './data_manager';
 import { trackingService } from './di_tracking.service';
 import LibConfig from '../domain/config';
 
-const DI_TRACKING_ID = 'di_tracking_id';
-const DI_USER_ID = 'di_user_id';
-const DI_PLATFORM = 'di_platform';
-const DI_LIBRARY_VERSION = 'di_lib_version';
-const DI_START_TIME = 'di_start_time';
-const DI_DURATION = 'di_duration';
-const DI_TIME = 'di_time';
+
 
 
 export class DiAnalytics {
   private static instance: DiAnalyticsLib;
 
-  //TODO: Clear additional data & queue... etc
-  static init(trackingApiKey: string, properties?: Properties) {
-
-    this.instance = this.createDiAnalytics(trackingApiKey, properties)
+  private static getInstance(): DiAnalyticsLib {
+    if (!this.instance) {
+      const trackingApiKey = DataManager.getTrackingApiKey();
+      if (trackingApiKey) {
+        this.init(trackingApiKey);
+      } else {
+        throw new Error('DiAnalytics: You have to call DiAnalytics.init first.');
+      }
+    }
+    return this.instance;
   }
 
   private static createDiAnalytics(trackingApiKey: string, properties?: Properties): DiAnalyticsLib {
-    let props: Properties;
-    if (properties && Object.keys(properties).length !== 0) {
-      props = properties;
-    } else {
-      props = {};
-    }
     if (trackingApiKey && trackingApiKey.length !== 0) {
-      return new DiAnalyticsLib(trackingApiKey, props);
+      DataManager.setTrackingApiKey(trackingApiKey);
+      return new DiAnalyticsLib(trackingApiKey, properties || {});
     } else {
-      throw new Error('DiAnalyticsLib::init:: trackingApiKey must not empty string!');
+      throw new Error('DiAnalytics: trackingApiKey must not empty string!');
     }
   }
 
+  //TODO: Clear additional data & queue... etc
+  static init(trackingApiKey: string, properties?: Properties) {
+    this.instance = this.createDiAnalytics(trackingApiKey, properties);
+  }
+
+  static enterScreen(name: string, properties: Properties = {}): DiAnalytics {
+    this.getInstance().enterScreen(name, properties);
+    return this;
+  }
+
+  static exitScreen(name: string, properties: Properties = {}): DiAnalytics {
+    this.getInstance().exitScreen(name, properties);
+    return this;
+  }
+
+  static reset(): DiAnalytics {
+    this.getInstance().reset();
+    return this;
+  }
 
   static register(properties: Properties): DiAnalytics {
-    this.instance.register(properties)
+    this.getInstance().register(properties)
     return this;
   }
 
   static track(event: string, properties: Properties = {}): DiAnalytics {
-    this.instance.track(event, properties);
+    this.getInstance().track(event, properties);
     return this;
   }
 
   static setUserProfile(userId: string, properties: Properties = {}): DiAnalytics {
-    this.instance.setUserProfile(userId, properties);
+    this.getInstance().setUserProfile(userId, properties);
     return this;
   }
 
 }
 
 class DiAnalyticsLib {
-
-
   private trackingApiKey: string;
   private globalProperties: Properties;
 
@@ -76,37 +88,64 @@ class DiAnalyticsLib {
         if (!trackingId) {
           throw Error("Can't generate tracking id");
         }
-        DataManager.setTrackId(trackingId);
+        DataManager.setTrackingId(trackingId);
         return trackingId;
       });
     }
 
-    let trackId = DataManager.getTrackId();
+    let trackId = DataManager.getTrackingId();
     if (!trackId) {
       trackId = await generateTrackingId();
     }
     return trackId;
   }
 
+  private getCurrentPageAndReferrerInfo(): Properties {
+    const url = new URL(window.document.URL);
+    let currentPageAndReferrerInfo = {
+      'di_url': url.href,
+      'di_url_params': url.searchParams.toString,
+    } as Properties;
+    if (window.document.referrer) {
+      const referrer = new URL(window.document.referrer);
+      currentPageAndReferrerInfo['di_referrer_host'] = referrer.host;
+      currentPageAndReferrerInfo['di_referrer'] = referrer.href;
+      currentPageAndReferrerInfo['di_referrer_params'] = referrer.searchParams.toString;
+    }
 
-  enrichWithGlobalProperties(properties: Properties): Properties {
+    return currentPageAndReferrerInfo;
+  }
+
+  private enrichWithGlobalProperties(properties: Properties): Properties {
     return {
       ...this.globalProperties,
       ...properties,
     };
   }
 
-  enrichWithSystemProperties(trackingId: string, userId: string | undefined, properties: Properties): Properties {
+  private enrichWithSystemProperties(trackingId: string, properties: Properties): Properties {
+    const userId = DataManager.getUserId();
+
+
+    if (!properties['di_screen_name']) {
+      properties['di_screen_name'] = window.document.location.pathname;
+    }
     return {
       ...properties,
-      DI_PLATFORM: LibConfig.platform,
-      DI_LIBRARY_VERSION: LibConfig.version,
-      DI_TRACKING_ID: trackingId,
-      DI_USER_ID: userId || '',
-      DI_START_TIME: 0,
-      DI_DURATION: 0,
-      DI_TIME: Date.now(),
+      ...this.getCurrentPageAndReferrerInfo(),
+      'di_tracking_id': trackingId,
+      'di_user_id': userId || '',
+      'di_platform': LibConfig.platform,
+      'di_lib_version': LibConfig.version,
+      'di_start_time': 0,
+      'di_duration': 0,
+      'di_time': Date.now(),
     };
+  }
+
+  reset() {
+    DataManager.reset();
+
   }
 
   register(properties: Properties) {
@@ -118,18 +157,38 @@ class DiAnalyticsLib {
     this.globalProperties = props;
   }
 
+  async enterScreen(name: string, properties: Properties = {}) {
+    properties["di_screen_name"] = name;
+    this.track("di_screen_enter", properties);
+  }
+
+  async exitScreen(name: string, properties: Properties = {}) {
+    properties["di_screen_name"] = name;
+    this.track("di_screen_exit", properties);
+  }
+
 
   async track(event: string, properties: Properties) {
-    let userId = DataManager.getUserId();
     return this.getTrackingId().then(trackingId => {
-      let eventProperties = this.enrichWithGlobalProperties(properties)
-      eventProperties = this.enrichWithSystemProperties(trackingId, userId, eventProperties)
+      const eventProperties = this.enrichWithSystemProperties(
+        trackingId,
+        this.enrichWithGlobalProperties(properties)
+      );
       return trackingService.track(this.trackingApiKey, event, eventProperties);
     }).then(maybeTrackingId => {
       if (maybeTrackingId) {
-        DataManager.setTrackId(maybeTrackingId);
+        DataManager.setTrackingId(maybeTrackingId);
       }
     }).catch(ex => console.error('DiAnalytics::track', ex));
+  }
+
+  //TODO: Send an event to server to resolve and old event with this user id
+  async identify(userId: string): Promise<void> {
+    const oldUserId = DataManager.getUserId();
+    if (oldUserId && oldUserId.length !== 0 && oldUserId !== userId) {
+      DataManager.reset();
+    }
+    DataManager.setUserId(userId);
   }
 
   async setUserProfile(userId: string, properties: Properties): Promise<void> {
@@ -137,14 +196,16 @@ class DiAnalyticsLib {
     return this.getTrackingId().then(trackingId => {
       let props = {
         ...properties,
-        DI_TRACKING_ID: trackingId
+        'di_tracking_id': trackingId
       };
       return trackingService.engage(this.trackingApiKey, userId, props);
     }).then(maybeTrackId => {
       if (maybeTrackId) {
-        DataManager.setTrackId(maybeTrackId);
+        DataManager.setTrackingId(maybeTrackId);
       }
     }).catch(ex => console.error('DiAnalytics::setUserProfile', ex));
   }
+
+
 }
 
