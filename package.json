@@ -1,7 +1,7 @@
 {
 
   "name": "@datainsider/di-web-analytics",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Data insider web analytics",
   "publishConfig": {
     "@datainsider:registry":"https://gitlab.com/api/v4/projects/21342430/packages/npm/"
