@@ -1,7 +1,11 @@
 {
-  "name": "di-web-analytics",
+
+  "name": "@datainsider/di-web-analytics",
   "version": "0.0.1",
   "description": "Data insider web analytics",
+  "publishConfig": {
+    "@datainsider:registry":"https://gitlab.com/api/v4/projects/21342430/packages/npm/"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -13,6 +17,7 @@
     "di-web",
     "analytics"
   ],
+
   "author": "Data insider",
   "license": "MIT",
   "devDependencies": {
