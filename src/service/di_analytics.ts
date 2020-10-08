@@ -104,13 +104,13 @@ class DiAnalyticsLib {
     const url = new URL(window.document.URL);
     let currentPageAndReferrerInfo = {
       'di_url': url.href,
-      'di_url_params': url.searchParams.toString,
+      'di_url_params': JSON.stringify(new Map<string,string>(url.searchParams.entries())),
     } as Properties;
     if (window.document.referrer) {
       const referrer = new URL(window.document.referrer);
       currentPageAndReferrerInfo['di_referrer_host'] = referrer.host;
       currentPageAndReferrerInfo['di_referrer'] = referrer.href;
-      currentPageAndReferrerInfo['di_referrer_params'] = referrer.searchParams.toString;
+      currentPageAndReferrerInfo['di_referrer_params'] = JSON.stringify(new Map<string,string>(referrer.searchParams.entries()))
     }
 
     return currentPageAndReferrerInfo;
