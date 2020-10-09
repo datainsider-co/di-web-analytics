@@ -1,5 +1,6 @@
 import Bowser from 'bowser';
 import { Properties } from '../dist/domain/properties';
+import LibConfig from '../dist/domain/config';
 
 export class PlatformInfo {
   readonly type: string;
@@ -57,6 +58,43 @@ export default class AnalyticsUtils {
   static readonly SE_UNKNOWN = '';
 
   static readonly QUERY_PARAM_REGEXP = new RegExp('[\\?&]?(\\w+)=([^&#]*)', 'g');
+
+
+  static buildPageAndReferrerInfo(): Properties {
+    const url = new URL(window.document.URL);
+    const properties = {
+      'di_url': url.href,
+      'di_path': `${url.hostname}/${url.pathname}`,
+      'di_url_params': JSON.stringify(AnalyticsUtils.getQueryParams(url.search)),
+    } as Properties;
+    if (window.document.referrer) {
+      const referrer = new URL(window.document.referrer);
+      properties['di_referrer_host'] = referrer.host;
+      properties['di_referrer'] = referrer.href;
+      properties['di_referrer_search_engine'] = AnalyticsUtils.getSearchEngine(referrer.href);
+      properties['di_referrer_search_keyword'] = AnalyticsUtils.getSearchKeyword(referrer.href);
+      properties['di_referrer_params'] = JSON.stringify(AnalyticsUtils.getQueryParams(referrer.search));
+    }
+    return properties;
+  }
+
+  static buildClientSpecifications(): Properties {
+    const devicePlatform = AnalyticsUtils.getDevicePlatform(navigator.userAgent);
+    const deviceOS = AnalyticsUtils.getOS(navigator.userAgent);
+    const deviceBrowser = AnalyticsUtils.getBrowser(navigator.userAgent);
+
+    return {
+      'di_os': deviceOS.name,
+      'di_os_version': deviceOS.version,
+      'di_os_version_name': deviceOS.versionName,
+      'di_browser': deviceBrowser.name,
+      'di_browser_version': deviceBrowser.version,
+      'di_platform': devicePlatform.type,
+      'di_platform_model': devicePlatform.model,
+      'di_platform_vendor': devicePlatform.vendor
+    } as Properties;
+
+  }
 
   static getQueryParams(query: string): Properties {
     let params = {} as Properties;

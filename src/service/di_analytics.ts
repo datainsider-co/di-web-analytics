@@ -2,9 +2,7 @@ import { Properties } from '../domain';
 import { DataManager } from './data_manager';
 import { trackingService } from './di_tracking.service';
 import LibConfig from '../domain/config';
-
-
-
+import AnalyticsUtils from '../analytics_utils';
 
 export class DiAnalytics {
   private static instance: DiAnalyticsLib;
@@ -100,21 +98,7 @@ class DiAnalyticsLib {
     return trackId;
   }
 
-  private getCurrentPageAndReferrerInfo(): Properties {
-    const url = new URL(window.document.URL);
-    let currentPageAndReferrerInfo = {
-      'di_url': url.href,
-      'di_url_params': JSON.stringify(new Map<string,string>(url.searchParams.entries())),
-    } as Properties;
-    if (window.document.referrer) {
-      const referrer = new URL(window.document.referrer);
-      currentPageAndReferrerInfo['di_referrer_host'] = referrer.host;
-      currentPageAndReferrerInfo['di_referrer'] = referrer.href;
-      currentPageAndReferrerInfo['di_referrer_params'] = JSON.stringify(new Map<string,string>(referrer.searchParams.entries()))
-    }
 
-    return currentPageAndReferrerInfo;
-  }
 
   private enrichWithGlobalProperties(properties: Properties): Properties {
     return {
@@ -124,18 +108,17 @@ class DiAnalyticsLib {
   }
 
   private enrichWithSystemProperties(trackingId: string, properties: Properties): Properties {
-    const userId = DataManager.getUserId();
-
 
     if (!properties['di_screen_name']) {
       properties['di_screen_name'] = window.document.location.pathname;
     }
     return {
       ...properties,
-      ...this.getCurrentPageAndReferrerInfo(),
+      ...AnalyticsUtils.buildClientSpecifications(),
+      ...AnalyticsUtils.buildPageAndReferrerInfo(),
       'di_tracking_id': trackingId,
-      'di_user_id': userId || '',
-      'di_platform': LibConfig.platform,
+      'di_user_id': DataManager.getUserId() || '',
+      'di_lib_platform': LibConfig.platform,
       'di_lib_version': LibConfig.version,
       'di_start_time': 0,
       'di_duration': 0,
