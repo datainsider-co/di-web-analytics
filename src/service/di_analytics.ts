@@ -147,7 +147,7 @@ class DiAnalyticsLib {
     return this.getTrackingId().then(trackingId => {
       const eventProperties = this.enrichWithSystemProperties(
         trackingId,
-        this.enrichWithGlobalProperties(properties)
+        properties
       );
       return trackingService.track(this.trackingApiKey, event, eventProperties);
     }).then(maybeTrackingId => {

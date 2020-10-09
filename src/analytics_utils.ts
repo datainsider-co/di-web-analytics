@@ -1,6 +1,5 @@
 import Bowser from 'bowser';
 import { Properties } from '../dist/domain/properties';
-import LibConfig from '../dist/domain/config';
 
 export class PlatformInfo {
   readonly type: string;
