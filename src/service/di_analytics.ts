@@ -98,21 +98,13 @@ class DiAnalyticsLib {
     return trackId;
   }
 
-
-
-  private enrichWithGlobalProperties(properties: Properties): Properties {
-    return {
-      ...this.globalProperties,
-      ...properties,
-    };
-  }
-
   private enrichWithSystemProperties(trackingId: string, properties: Properties): Properties {
 
     if (!properties['di_screen_name']) {
       properties['di_screen_name'] = window.document.location.pathname;
     }
     return {
+      ...this.globalProperties,
       ...properties,
       ...AnalyticsUtils.buildClientSpecifications(),
       ...AnalyticsUtils.buildPageAndReferrerInfo(),
