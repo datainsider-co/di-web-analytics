@@ -63,7 +63,7 @@ export default class AnalyticsUtils {
     const url = new URL(window.document.URL);
     const properties = {
       'di_url': url.href,
-      'di_path': `${url.hostname}/${url.pathname}`,
+      'di_path': `${url.hostname}${url.pathname}`,
       'di_url_params': JSON.stringify(AnalyticsUtils.getQueryParams(url.search)),
     } as Properties;
     if (window.document.referrer) {
