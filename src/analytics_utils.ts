@@ -88,6 +88,7 @@ export default class AnalyticsUtils {
       'di_os_version_name': deviceOS.versionName,
       'di_browser': deviceBrowser.name,
       'di_browser_version': deviceBrowser.version,
+      'di_browser_ua': navigator.userAgent || '',
       'di_platform': devicePlatform.type,
       'di_platform_model': devicePlatform.model,
       'di_platform_vendor': devicePlatform.vendor
