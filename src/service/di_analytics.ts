@@ -68,6 +68,7 @@ export class DiAnalytics {
 class DiAnalyticsLib {
   private trackingApiKey: string;
   private globalProperties: Properties;
+  private lastScreenName?: string;
 
   constructor(trackingApiKey: string, properties: Properties) {
     this.trackingApiKey = trackingApiKey;
@@ -79,6 +80,48 @@ class DiAnalyticsLib {
     DataManager.setGlobalProperties(props)
     this.globalProperties = props;
   }
+
+  reset() {
+    this.lastScreenName = '';
+    DataManager.reset();
+  }
+
+  register(properties: Properties) {
+    let props = {
+      ...this.globalProperties,
+      ...properties
+    };
+    DataManager.setGlobalProperties(props);
+    this.globalProperties = props;
+  }
+
+  async enterScreen(name: string, properties: Properties = {}) {
+    properties["di_screen_name"] = name;
+    this.lastScreenName = name || '';
+    this.track("di_screen_enter", properties);
+  }
+
+  async exitScreen(name: string, properties: Properties = {}) {
+    properties["di_screen_name"] = name;
+    this.lastScreenName = '';
+    this.track("di_screen_exit", properties);
+  }
+
+
+  async track(event: string, properties: Properties) {
+    return this.getTrackingId().then(trackingId => {
+      const eventProperties = this.enrichWithSystemProperties(
+        trackingId,
+        properties
+      );
+      return trackingService.track(this.trackingApiKey, event, eventProperties);
+    }).then(maybeTrackingId => {
+      if (maybeTrackingId) {
+        DataManager.setTrackingId(maybeTrackingId);
+      }
+    }).catch(ex => console.error('DiAnalytics::track', ex));
+  }
+
 
   private async getTrackingId(): Promise<string> {
     const generateTrackingId = async (): Promise<string> => {
@@ -101,7 +144,7 @@ class DiAnalyticsLib {
   private enrichWithSystemProperties(trackingId: string, properties: Properties): Properties {
 
     if (!properties['di_screen_name']) {
-      properties['di_screen_name'] = window.document.location.pathname;
+      properties['di_screen_name'] = this.lastScreenName || window.document.location.pathname;
     }
     return {
       ...this.globalProperties,
@@ -118,44 +161,6 @@ class DiAnalyticsLib {
     };
   }
 
-  reset() {
-    DataManager.reset();
-
-  }
-
-  register(properties: Properties) {
-    let props = {
-      ...this.globalProperties,
-      ...properties
-    };
-    DataManager.setGlobalProperties(props);
-    this.globalProperties = props;
-  }
-
-  async enterScreen(name: string, properties: Properties = {}) {
-    properties["di_screen_name"] = name;
-    this.track("di_screen_enter", properties);
-  }
-
-  async exitScreen(name: string, properties: Properties = {}) {
-    properties["di_screen_name"] = name;
-    this.track("di_screen_exit", properties);
-  }
-
-
-  async track(event: string, properties: Properties) {
-    return this.getTrackingId().then(trackingId => {
-      const eventProperties = this.enrichWithSystemProperties(
-        trackingId,
-        properties
-      );
-      return trackingService.track(this.trackingApiKey, event, eventProperties);
-    }).then(maybeTrackingId => {
-      if (maybeTrackingId) {
-        DataManager.setTrackingId(maybeTrackingId);
-      }
-    }).catch(ex => console.error('DiAnalytics::track', ex));
-  }
 
   //TODO: Send an event to server to resolve and old event with this user id
   async identify(userId: string): Promise<void> {

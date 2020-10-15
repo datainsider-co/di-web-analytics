@@ -28,11 +28,11 @@ describe('Test tracking service', () => {
     birthDate: 0
   };
 
-  it('Should generate api key success', async () => {
-    const trackId = await trackingService.genTrackId(apiKey);
-    console.log('track::trackId::', trackId);
-    expect(trackId).not.undefined;
-  });
+  // it('Should generate api key success', async () => {
+  //   const trackId = await trackingService.genTrackId(apiKey);
+  //   console.log('track::trackId::', trackId);
+  //   expect(trackId).not.undefined;
+  // });
 
   it('Should track is success', async () => {
     const trackId = await trackingService.track(apiKey, 'product_purchased', {
