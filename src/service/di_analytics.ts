@@ -3,6 +3,7 @@ import { DataManager } from './data_manager';
 import { trackingService } from './di_tracking.service';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../analytics_utils';
+import { EventStopWatch } from './event_stopwatch';
 
 export class DiAnalytics {
   private static instance: DiAnalyticsLib;
@@ -70,6 +71,9 @@ class DiAnalyticsLib {
   private globalProperties: Properties;
   private lastScreenName?: string;
 
+  private stopWatch: EventStopWatch = new EventStopWatch();
+
+
   constructor(trackingApiKey: string, properties: Properties) {
     this.trackingApiKey = trackingApiKey;
 
@@ -83,6 +87,7 @@ class DiAnalyticsLib {
 
   reset() {
     this.lastScreenName = '';
+    this.stopWatch.clear();
     DataManager.reset();
   }
 
@@ -96,21 +101,33 @@ class DiAnalyticsLib {
   }
 
   async enterScreen(name: string, properties: Properties = {}) {
+    this.stopWatch.add(`di_pageview_${name}`);
+
     properties["di_screen_name"] = name;
     this.lastScreenName = name || '';
-    this.track("di_screen_enter", properties);
+    return this.track("di_screen_enter", properties);
   }
 
   async exitScreen(name: string, properties: Properties = {}) {
+    let [startTime, duration] = this.stopWatch.pop(`di_pageview_${name}`);
+
     properties["di_screen_name"] = name;
+    properties["di_start_time"] = startTime || 0;
+    properties["di_duration"] = duration || 0;
     this.lastScreenName = '';
-    this.track("di_screen_exit", properties);
+    return this.track("di_screen_exit", properties);
+    return this.track("di_pageview", properties);
+  }
+
+  time(event: string) {
+    this.stopWatch.add(event);
   }
 
 
   async track(event: string, properties: Properties) {
     return this.getTrackingId().then(trackingId => {
-      const eventProperties = this.enrichWithSystemProperties(
+      const eventProperties = this.buildTrackingProperties(
+        event,
         trackingId,
         properties
       );
@@ -123,29 +140,12 @@ class DiAnalyticsLib {
   }
 
 
-  private async getTrackingId(): Promise<string> {
-    const generateTrackingId = async (): Promise<string> => {
-      return trackingService.genTrackId(this.trackingApiKey).then(trackingId => {
-        if (!trackingId) {
-          throw Error("Can't generate tracking id");
-        }
-        DataManager.setTrackingId(trackingId);
-        return trackingId;
-      });
-    }
 
-    let trackId = DataManager.getTrackingId();
-    if (!trackId) {
-      trackId = await generateTrackingId();
-    }
-    return trackId;
-  }
 
-  private enrichWithSystemProperties(trackingId: string, properties: Properties): Properties {
+  private buildTrackingProperties(event: string, trackingId: string, properties: Properties): Properties {
 
-    if (!properties['di_screen_name']) {
-      properties['di_screen_name'] = this.lastScreenName || window.document.location.pathname;
-    }
+    this.enrichScreenName(properties);
+    this.enrichDuration(event, properties)
     return {
       ...this.globalProperties,
       ...properties,
@@ -155,10 +155,26 @@ class DiAnalyticsLib {
       'di_user_id': DataManager.getUserId() || '',
       'di_lib_platform': LibConfig.platform,
       'di_lib_version': LibConfig.version,
-      'di_start_time': 0,
-      'di_duration': 0,
       'di_time': Date.now(),
     };
+  }
+
+  private enrichScreenName(properties: Properties) {
+    if (!properties['di_screen_name']) {
+      properties['di_screen_name'] = this.lastScreenName || window.document.location.pathname;
+    }
+  }
+
+
+
+  private enrichDuration(event: string, properties: Properties) {
+    let [startTime, duration] = this.stopWatch.pop(event);
+    if (!properties['di_start_time']) {
+      properties['di_start_time'] = startTime || 0;
+    }
+    if (!properties['di_duration']) {
+      properties['di_duration'] = duration || 0;
+    }
   }
 
 
@@ -186,6 +202,25 @@ class DiAnalyticsLib {
     }).catch(ex => console.error('DiAnalytics::setUserProfile', ex));
   }
 
+
+
+  private async getTrackingId(): Promise<string> {
+    const generateTrackingId = async (): Promise<string> => {
+      return trackingService.genTrackId(this.trackingApiKey).then(trackingId => {
+        if (!trackingId) {
+          throw Error("Can't generate tracking id");
+        }
+        DataManager.setTrackingId(trackingId);
+        return trackingId;
+      });
+    }
+
+    let trackId = DataManager.getTrackingId();
+    if (!trackId) {
+      trackId = await generateTrackingId();
+    }
+    return trackId;
+  }
 
 }
 
