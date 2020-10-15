@@ -115,7 +115,7 @@ class DiAnalyticsLib {
     properties["di_start_time"] = startTime || 0;
     properties["di_duration"] = duration || 0;
     this.lastScreenName = '';
-    return this.track("di_screen_exit", properties);
+    this.track("di_screen_exit", properties);
     return this.track("di_pageview", properties);
   }
 
