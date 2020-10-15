@@ -54,6 +54,11 @@ export class DiAnalytics {
     return this;
   }
 
+  static time(event: string): DiAnalytics {
+    this.getInstance().time(event);
+    return this;
+  }
+
   static track(event: string, properties: Properties = {}): DiAnalytics {
     this.getInstance().track(event, properties);
     return this;
@@ -122,7 +127,6 @@ class DiAnalyticsLib {
   time(event: string) {
     this.stopWatch.add(event);
   }
-
 
   async track(event: string, properties: Properties) {
     return this.getTrackingId().then(trackingId => {
