@@ -41,36 +41,52 @@ export class DiAnalytics {
   }
 
   static enterScreenStart(name: string) {
-    this.getInstance().enterScreenStart(name);
+    this.getInstance().touchSession().then(() => {
+
+      this.getInstance().enterScreenStart(name);
+    });
   }
 
   static enterScreen(name: string, properties: Properties = {}): DiAnalytics {
-    this.getInstance().enterScreen(name, properties);
+    this.getInstance().touchSession().then(() => {
+
+      this.getInstance().enterScreen(name, properties);
+    });
     return this;
   }
 
   static exitScreen(name: string, properties: Properties = {}): DiAnalytics {
-    this.getInstance().exitScreen(name, properties);
+    this.getInstance().touchSession().then(() => {
+      this.getInstance().exitScreen(name, properties);
+    });
     return this;
   }
 
   static register(properties: Properties): DiAnalytics {
-    this.getInstance().register(properties)
+    this.getInstance().touchSession().then(() => {
+      this.getInstance().register(properties);
+    });
+
     return this;
   }
 
   static time(event: string): DiAnalytics {
+    this.getInstance().touchSession();
     this.getInstance().time(event);
     return this;
   }
 
   static track(event: string, properties: Properties = {}): DiAnalytics {
-    this.getInstance().track(event, properties);
+    this.getInstance().touchSession().then(() => {
+      this.getInstance().track(event, properties);
+    });
     return this;
   }
 
   static setUserProfile(userId: string, properties: Properties = {}): DiAnalytics {
-    this.getInstance().setUserProfile(userId, properties);
+    this.getInstance().touchSession().then(() => {
+      this.getInstance().setUserProfile(userId, properties);
+    });
     return this;
   }
 
@@ -96,13 +112,31 @@ class DiAnalyticsLib {
     this.globalProperties = props;
     this.touchSession();
 
-    document.addEventListener('beforeunload', (event) => {
+    window.addEventListener('beforeunload', (event) => {
       let [sessionId, createdAt, _] = DataManager.getSession();
       if (sessionId && createdAt) {
         this.trackSessionEnd(sessionId, createdAt);
       }
       DataManager.deleteSession();
+      console.log(`Event target: ${event.target}`);
+      console.log(`Event current target: ${event.currentTarget}`);
+      console.log(`Closed session on beforeunload: ${sessionId}`);
+      event.preventDefault();
+      return false;
     })
+
+    // window.addEventListener('close', (event) => {
+    //   let [sessionId, createdAt, _] = DataManager.getSession();
+    //   if (sessionId && createdAt) {
+    //     this.trackSessionEnd(sessionId, createdAt);
+    //   }
+    //   DataManager.deleteSession();
+    //   console.log(`Event target: ${event.target}`);
+    //   console.log(`Event current target: ${event.currentTarget}`);
+    //   console.log(`Closed session on close: ${sessionId}`);
+    //   event.preventDefault();
+    //   return false;
+    // })
   }
 
   reset() {
@@ -118,7 +152,6 @@ class DiAnalyticsLib {
     };
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
-    await this.touchSession();
   }
 
   async enterScreenStart(name: string) {
@@ -155,17 +188,15 @@ class DiAnalyticsLib {
     let properties = {} as Properties;
     properties['di_session_id'] = sessionId;
     properties['di_start_time'] = createdAt;
-    properties['di_duration'] = Date.now() - createdAt;
+    properties['di_duration'] = (Date.now() - createdAt);
     return this.track('di_session_end', properties);
   }
 
   time(event: string) {
-    this.touchSession();
     this.stopWatch.add(event);
   }
 
   async track(event: string, properties: Properties): Promise<any> {
-    await this.touchSession();
     return this.getTrackingId().then(trackingId => {
       const eventProperties = this.buildTrackingProperties(
         event,
@@ -184,7 +215,6 @@ class DiAnalyticsLib {
 
   //TODO: Send an event to server to resolve and old event with this user id
   async identify(userId: string): Promise<void> {
-    await this.touchSession();
     const oldUserId = DataManager.getUserId();
     if (oldUserId && oldUserId.length !== 0 && oldUserId !== userId) {
       DataManager.reset();
@@ -193,7 +223,6 @@ class DiAnalyticsLib {
   }
 
   async setUserProfile(userId: string, properties: Properties): Promise<void> {
-    await this.touchSession();
     DataManager.setUserId(userId);
     return this.getTrackingId().then(trackingId => {
       let props = {
@@ -209,7 +238,7 @@ class DiAnalyticsLib {
   }
 
 
-  private async touchSession(): Promise<void> {
+  async touchSession(): Promise<void> {
     let [sessionId, createdAt, expiredAt] = DataManager.getSession();
     if (!sessionId || (Date.now() >= expiredAt)) {
       this.trackSessionEnd(sessionId, createdAt);
