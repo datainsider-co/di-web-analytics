@@ -20,18 +20,28 @@ export class DiAnalytics {
     return this.instance;
   }
 
+  //TODO: Clear additional data & queue... etc
+  static init(trackingApiKey: string, properties?: Properties) {
+    this.instance = this.createDiAnalytics(trackingApiKey, properties);
+  }
+
   private static createDiAnalytics(trackingApiKey: string, properties?: Properties): DiAnalyticsLib {
     if (trackingApiKey && trackingApiKey.length !== 0) {
       DataManager.setTrackingApiKey(trackingApiKey);
+      DataManager.touchSession();
       return new DiAnalyticsLib(trackingApiKey, properties || {});
     } else {
       throw new Error('DiAnalytics: trackingApiKey must not empty string!');
     }
   }
 
-  //TODO: Clear additional data & queue... etc
-  static init(trackingApiKey: string, properties?: Properties) {
-    this.instance = this.createDiAnalytics(trackingApiKey, properties);
+  static reset(): DiAnalytics {
+    this.getInstance().reset();
+    return this;
+  }
+
+  static enterScreenStart(name: string) {
+    this.getInstance().enterScreenStart(name);
   }
 
   static enterScreen(name: string, properties: Properties = {}): DiAnalytics {
@@ -41,11 +51,6 @@ export class DiAnalytics {
 
   static exitScreen(name: string, properties: Properties = {}): DiAnalytics {
     this.getInstance().exitScreen(name, properties);
-    return this;
-  }
-
-  static reset(): DiAnalytics {
-    this.getInstance().reset();
     return this;
   }
 
@@ -74,6 +79,7 @@ export class DiAnalytics {
 class DiAnalyticsLib {
   private trackingApiKey: string;
   private globalProperties: Properties;
+
   private lastScreenName?: string;
 
   private stopWatch: EventStopWatch = new EventStopWatch();
@@ -103,18 +109,23 @@ class DiAnalyticsLib {
     };
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
+    DataManager.touchSession();
+  }
+
+  async enterScreenStart(name: string) {
+    this.time('di_screen_enter');
+    this.lastScreenName = name || '';
   }
 
   async enterScreen(name: string, properties: Properties = {}) {
-    this.stopWatch.add(`di_pageview_${name}`);
-
+    this.time(`di_pageview_${name}`);
     properties["di_screen_name"] = name;
     this.lastScreenName = name || '';
     return this.track("di_screen_enter", properties);
   }
 
   async exitScreen(name: string, properties: Properties = {}) {
-    let [startTime, duration] = this.stopWatch.pop(`di_pageview_${name}`);
+    let [startTime, duration] = this.stopWatch.stopAndPop(`di_pageview_${name}`);
 
     properties["di_screen_name"] = name;
     properties["di_start_time"] = startTime || 0;
@@ -125,10 +136,12 @@ class DiAnalyticsLib {
   }
 
   time(event: string) {
+    DataManager.touchSession();
     this.stopWatch.add(event);
   }
 
-  async track(event: string, properties: Properties) {
+  async track(event: string, properties: Properties): Promise<any> {
+
     return this.getTrackingId().then(trackingId => {
       const eventProperties = this.buildTrackingProperties(
         event,
@@ -137,19 +150,43 @@ class DiAnalyticsLib {
       );
       return trackingService.track(this.trackingApiKey, event, eventProperties);
     }).then(maybeTrackingId => {
+      DataManager.touchSession();
       if (maybeTrackingId) {
         DataManager.setTrackingId(maybeTrackingId);
       }
     }).catch(ex => console.error('DiAnalytics::track', ex));
   }
 
+  //TODO: Send an event to server to resolve and old event with this user id
+  async identify(userId: string): Promise<void> {
+    const oldUserId = DataManager.getUserId();
+    if (oldUserId && oldUserId.length !== 0 && oldUserId !== userId) {
+      DataManager.reset();
+    }
+    DataManager.setUserId(userId);
+    DataManager.touchSession();
+  }
 
-
+  async setUserProfile(userId: string, properties: Properties): Promise<void> {
+    DataManager.setUserId(userId);
+    return this.getTrackingId().then(trackingId => {
+      let props = {
+        ...properties,
+        'di_tracking_id': trackingId
+      };
+      return trackingService.engage(this.trackingApiKey, userId, props);
+    }).then(maybeTrackId => {
+      DataManager.touchSession();
+      if (maybeTrackId) {
+        DataManager.setTrackingId(maybeTrackId);
+      }
+    }).catch(ex => console.error('DiAnalytics::setUserProfile', ex));
+  }
 
   private buildTrackingProperties(event: string, trackingId: string, properties: Properties): Properties {
-
+    let [sessionId, _] = DataManager.getActiveSession();
     this.enrichScreenName(properties);
-    this.enrichDuration(event, properties)
+    this.enrichDuration(event, properties);
     return {
       ...this.globalProperties,
       ...properties,
@@ -159,6 +196,7 @@ class DiAnalyticsLib {
       'di_user_id': DataManager.getUserId() || '',
       'di_lib_platform': LibConfig.platform,
       'di_lib_version': LibConfig.version,
+      'di_session_id': sessionId || '',
       'di_time': Date.now(),
     };
   }
@@ -172,7 +210,7 @@ class DiAnalyticsLib {
 
 
   private enrichDuration(event: string, properties: Properties) {
-    let [startTime, duration] = this.stopWatch.pop(event);
+    let [startTime, duration] = this.stopWatch.stopAndPop(event);
     if (!properties['di_start_time']) {
       properties['di_start_time'] = startTime || 0;
     }
@@ -180,32 +218,6 @@ class DiAnalyticsLib {
       properties['di_duration'] = duration || 0;
     }
   }
-
-
-  //TODO: Send an event to server to resolve and old event with this user id
-  async identify(userId: string): Promise<void> {
-    const oldUserId = DataManager.getUserId();
-    if (oldUserId && oldUserId.length !== 0 && oldUserId !== userId) {
-      DataManager.reset();
-    }
-    DataManager.setUserId(userId);
-  }
-
-  async setUserProfile(userId: string, properties: Properties): Promise<void> {
-    DataManager.setUserId(userId);
-    return this.getTrackingId().then(trackingId => {
-      let props = {
-        ...properties,
-        'di_tracking_id': trackingId
-      };
-      return trackingService.engage(this.trackingApiKey, userId, props);
-    }).then(maybeTrackId => {
-      if (maybeTrackId) {
-        DataManager.setTrackingId(maybeTrackId);
-      }
-    }).catch(ex => console.error('DiAnalytics::setUserProfile', ex));
-  }
-
 
 
   private async getTrackingId(): Promise<string> {

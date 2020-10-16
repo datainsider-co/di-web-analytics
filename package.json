@@ -1,6 +1,6 @@
 {
   "name": "@datainsider/di-web-analytics",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Data insider web analytics",
   "publishConfig": {
     "@datainsider:registry": "https://gitlab.com/api/v4/projects/21342430/packages/npm/"
@@ -34,6 +34,7 @@
     "typescript": "~3.9.3"
   },
   "dependencies": {
+    "@types/uuid": "^8.3.0",
     "axios": "^0.20.0",
     "bowser": "^2.11.0",
     "js-cookies": "^1.0.4",

@@ -8,7 +8,7 @@ export class EventStopWatch {
     return this;
   }
 
-  pop(id: string): [number, number] {
+  stopAndPop(id: string): [number, number] {
     let start = this.stopWatch[id] || Date.now();
     let elapsed = Date.now() - start;
     delete this.stopWatch[id];
