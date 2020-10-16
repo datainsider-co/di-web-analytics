@@ -11,7 +11,6 @@ export class DITrackingService extends TrackingService {
     this.trackingRepository = repository;
   }
 
-
   genTrackId(trackingApiKey: string): Promise<string> {
     return this.trackingRepository.genTrackId(trackingApiKey);
   }
