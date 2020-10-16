@@ -28,7 +28,6 @@ export class DiAnalytics {
   private static createDiAnalytics(trackingApiKey: string, properties?: Properties): DiAnalyticsLib {
     if (trackingApiKey && trackingApiKey.length !== 0) {
       DataManager.setTrackingApiKey(trackingApiKey);
-      DataManager.touchSession();
       return new DiAnalyticsLib(trackingApiKey, properties || {});
     } else {
       throw new Error('DiAnalytics: trackingApiKey must not empty string!');
@@ -92,8 +91,9 @@ class DiAnalyticsLib {
       ...DataManager.getGlobalPropertes(),
       ...properties
     };
-    DataManager.setGlobalProperties(props)
+    DataManager.setGlobalProperties(props);
     this.globalProperties = props;
+    this.touchSession();
   }
 
   reset() {
@@ -102,14 +102,14 @@ class DiAnalyticsLib {
     DataManager.reset();
   }
 
-  register(properties: Properties) {
+  async register(properties: Properties) {
     let props = {
       ...this.globalProperties,
       ...properties
     };
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
-    DataManager.touchSession();
+    await this.touchSession();
   }
 
   async enterScreenStart(name: string) {
@@ -135,13 +135,26 @@ class DiAnalyticsLib {
     return this.track("di_pageview", properties);
   }
 
+  async trackSessionCreated(sessionId: string, createdAt: number) {
+    let properties = {} as Properties;
+    properties['di_time'] = createdAt;
+    return this.track('di_session_created', properties);
+  }
+
+  async trackSessionEnd(sessionId: string, createdAt: number) {
+    let properties = {} as Properties;
+    properties['di_start_time'] = createdAt;
+    properties['di_duration'] = Date.now() - createdAt;
+    return this.track('di_session_end', properties);
+  }
+
   time(event: string) {
-    DataManager.touchSession();
+    this.touchSession();
     this.stopWatch.add(event);
   }
 
   async track(event: string, properties: Properties): Promise<any> {
-
+    await this.touchSession();
     return this.getTrackingId().then(trackingId => {
       const eventProperties = this.buildTrackingProperties(
         event,
@@ -150,24 +163,26 @@ class DiAnalyticsLib {
       );
       return trackingService.track(this.trackingApiKey, event, eventProperties);
     }).then(maybeTrackingId => {
-      DataManager.touchSession();
       if (maybeTrackingId) {
         DataManager.setTrackingId(maybeTrackingId);
       }
     }).catch(ex => console.error('DiAnalytics::track', ex));
   }
 
+
+
   //TODO: Send an event to server to resolve and old event with this user id
   async identify(userId: string): Promise<void> {
+    await this.touchSession();
     const oldUserId = DataManager.getUserId();
     if (oldUserId && oldUserId.length !== 0 && oldUserId !== userId) {
       DataManager.reset();
     }
     DataManager.setUserId(userId);
-    DataManager.touchSession();
   }
 
   async setUserProfile(userId: string, properties: Properties): Promise<void> {
+    await this.touchSession();
     DataManager.setUserId(userId);
     return this.getTrackingId().then(trackingId => {
       let props = {
@@ -176,15 +191,31 @@ class DiAnalyticsLib {
       };
       return trackingService.engage(this.trackingApiKey, userId, props);
     }).then(maybeTrackId => {
-      DataManager.touchSession();
       if (maybeTrackId) {
         DataManager.setTrackingId(maybeTrackId);
       }
     }).catch(ex => console.error('DiAnalytics::setUserProfile', ex));
   }
 
+
+  private async touchSession(): Promise<void> {
+    let [sessionId, createdAt, expiredAt] = DataManager.getSession();
+    if (!sessionId || (Date.now() >= expiredAt)) {
+      this.trackSessionEnd(sessionId, createdAt);
+      this.createSession();
+    } else {
+      DataManager.updateSession(sessionId);
+    }
+  }
+
+  private createSession() {
+    let [sessionId, createdAt, _] = DataManager.createSession();
+    this.trackSessionCreated(sessionId, createdAt);
+  }
+
+
   private buildTrackingProperties(event: string, trackingId: string, properties: Properties): Properties {
-    let [sessionId, _] = DataManager.getActiveSession();
+    let [sessionId, _] = DataManager.getSession();
     this.enrichScreenName(properties);
     this.enrichDuration(event, properties);
     return {
@@ -197,7 +228,7 @@ class DiAnalyticsLib {
       'di_lib_platform': LibConfig.platform,
       'di_lib_version': LibConfig.version,
       'di_session_id': sessionId || '',
-      'di_time': Date.now(),
+      'di_time': properties['di_time'] || Date.now(),
     };
   }
 

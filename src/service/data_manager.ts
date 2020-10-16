@@ -6,6 +6,7 @@ import LibConfig from '../domain/config';
 export class DataManager {
   static readonly TRACKING_API_KEY = 'di_tracking_api_key';
   static readonly TRACKING_SESSION_ID = 'di_tracking_session_id';
+  static readonly TRACKING_SESSION_CREATED_AT = 'di_tracking_session_created_at';
   static readonly TRACKING_SESSION_EXPIRED_AT = 'di_tracking_session_expired_at';
   static readonly TRACKING_ID = 'di_tracking_id';
   static readonly USER_ID = 'di_tracking_user_id';
@@ -16,24 +17,31 @@ export class DataManager {
     this.deleteGlobalProperties();
   }
 
-  static getActiveSession(): [string, number] {
-    let [sessionId, expiredAt] = this.getSession();
-    if (!sessionId || (Date.now() >= expiredAt)) {
-      return this.createSession();
-    } else {
-      return [sessionId, expiredAt];
-    }
+  static createSession(): [string, number, number] {
+    let sessionId = uuid();
+    let createdAt = Date.now();
+    let expiredAt = createdAt + LibConfig.sessionMaxInactiveDuration;
+
+    localStorage.setItem(DataManager.TRACKING_SESSION_EXPIRED_AT, expiredAt.toString());
+    localStorage.setItem(DataManager.TRACKING_SESSION_CREATED_AT, createdAt.toString());
+    localStorage.setItem(DataManager.TRACKING_SESSION_ID, sessionId);
+    return [sessionId, createdAt, expiredAt];
   }
 
-  static touchSession(): [string, number] {
-    let [sessionId, expiredAt] = this.getSession();
-    if (!sessionId || (Date.now() >= expiredAt)) {
-      return this.createSession();
-    } else {
-      return this.updateSession(sessionId);
-    }
+  static updateSession(sessionId: string): [string, number] {
+    let expiredAt = Date.now() + LibConfig.sessionMaxInactiveDuration;
+
+    localStorage.setItem(DataManager.TRACKING_SESSION_EXPIRED_AT, expiredAt.toString());
+    localStorage.setItem(DataManager.TRACKING_SESSION_ID, sessionId);
+    return [sessionId, expiredAt];
   }
 
+  static getSession(): [string, number, number] {
+    let sessionId = localStorage.getItem(DataManager.TRACKING_SESSION_ID) || '';
+    let createdAt = localStorage.getItem(DataManager.TRACKING_SESSION_CREATED_AT) || '0';
+    let expiredAt = localStorage.getItem(DataManager.TRACKING_SESSION_EXPIRED_AT) || '0';
+    return [sessionId, Number.parseInt(createdAt), Number.parseInt(expiredAt)];
+  }
 
   private static isSesstionExpired(): boolean {
     let sessionId = localStorage.getItem(DataManager.TRACKING_SESSION_ID);
@@ -45,28 +53,8 @@ export class DataManager {
     }
   }
 
-  private static createSession(): [string, number] {
-    let sessionId = uuid();
-    let expiredAt = Date.now() + LibConfig.sessionMaxInactiveDuration;
 
-    localStorage.setItem(DataManager.TRACKING_SESSION_EXPIRED_AT, expiredAt.toString());
-    localStorage.setItem(DataManager.TRACKING_SESSION_ID, sessionId);
-    return [sessionId, expiredAt];
-  }
 
-  private static updateSession(sessionId: string): [string, number] {
-    let expiredAt = Date.now() + LibConfig.sessionMaxInactiveDuration;
-
-    localStorage.setItem(DataManager.TRACKING_SESSION_EXPIRED_AT, expiredAt.toString());
-    localStorage.setItem(DataManager.TRACKING_SESSION_ID, sessionId);
-    return [sessionId, expiredAt];
-  }
-
-  private static getSession(): [string, number] {
-    let sessionId = localStorage.getItem(DataManager.TRACKING_SESSION_ID) || '';
-    let expiredAt = localStorage.getItem(DataManager.TRACKING_SESSION_EXPIRED_AT) || '0';
-    return [sessionId, Number.parseInt(expiredAt)];
-  }
 
   static setTrackingApiKey(apiKey: string): void {
     localStorage.setItem(DataManager.TRACKING_API_KEY, apiKey);
