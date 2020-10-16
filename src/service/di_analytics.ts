@@ -23,6 +23,7 @@ export class DiAnalytics {
   //TODO: Clear additional data & queue... etc
   static init(trackingApiKey: string, properties?: Properties) {
     this.instance = this.createDiAnalytics(trackingApiKey, properties);
+
   }
 
   private static createDiAnalytics(trackingApiKey: string, properties?: Properties): DiAnalyticsLib {
@@ -94,6 +95,14 @@ class DiAnalyticsLib {
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
     this.touchSession();
+
+    document.addEventListener('beforeunload', (event) => {
+      let [sessionId, createdAt, _] = DataManager.getSession();
+      if (sessionId && createdAt) {
+        this.trackSessionEnd(sessionId, createdAt);
+      }
+      DataManager.deleteSession();
+    })
   }
 
   reset() {
@@ -137,12 +146,14 @@ class DiAnalyticsLib {
 
   async trackSessionCreated(sessionId: string, createdAt: number) {
     let properties = {} as Properties;
+    properties['di_session_id'] = sessionId;
     properties['di_time'] = createdAt;
     return this.track('di_session_created', properties);
   }
 
   async trackSessionEnd(sessionId: string, createdAt: number) {
     let properties = {} as Properties;
+    properties['di_session_id'] = sessionId;
     properties['di_start_time'] = createdAt;
     properties['di_duration'] = Date.now() - createdAt;
     return this.track('di_session_end', properties);
@@ -227,7 +238,7 @@ class DiAnalyticsLib {
       'di_user_id': DataManager.getUserId() || '',
       'di_lib_platform': LibConfig.platform,
       'di_lib_version': LibConfig.version,
-      'di_session_id': sessionId || '',
+      'di_session_id': sessionId || properties['di_session_id'] || '',
       'di_time': properties['di_time'] || Date.now(),
     };
   }

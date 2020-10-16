@@ -36,6 +36,13 @@ export class DataManager {
     return [sessionId, expiredAt];
   }
 
+  static deleteSession() {
+    localStorage.removeItem(DataManager.TRACKING_SESSION_ID);
+    localStorage.removeItem(DataManager.TRACKING_SESSION_CREATED_AT);
+    localStorage.removeItem(DataManager.TRACKING_SESSION_EXPIRED_AT);
+
+  }
+
   static getSession(): [string, number, number] {
     let sessionId = localStorage.getItem(DataManager.TRACKING_SESSION_ID) || '';
     let createdAt = localStorage.getItem(DataManager.TRACKING_SESSION_CREATED_AT) || '0';
@@ -52,9 +59,6 @@ export class DataManager {
       return false;
     }
   }
-
-
-
 
   static setTrackingApiKey(apiKey: string): void {
     localStorage.setItem(DataManager.TRACKING_API_KEY, apiKey);
