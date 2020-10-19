@@ -5,7 +5,6 @@ import LibConfig from '../domain/config';
 import AnalyticsUtils from '../analytics_utils';
 import { EventStopWatch } from './event_stopwatch';
 import { PersistentWorker } from './persistent_worker';
-import Queue from 'storage-based-queue';
 
 export class AnalyticsCore {
     private trackingApiKey: string;
@@ -19,7 +18,6 @@ export class AnalyticsCore {
 
     constructor(trackingApiKey: string, properties: Properties) {
         this.trackingApiKey = trackingApiKey;
-
         let props = {
             ...DataManager.getGlobalPropertes(),
             ...properties
@@ -30,28 +28,24 @@ export class AnalyticsCore {
             this.touchSession();
         });
 
-        window.addEventListener('beforeunload', (event) => {
-            let [sessionId, createdAt, _] = DataManager.getSession();
-            if (sessionId && createdAt) {
-                this.trackSessionEnd(sessionId, createdAt);
-            }
-            DataManager.deleteSession();
-            event.preventDefault();
-            return false;
-        })
+        this.bindEvents();
 
-        // window.addEventListener('close', (event) => {
-        //   let [sessionId, createdAt, _] = DataManager.getSession();
-        //   if (sessionId && createdAt) {
-        //     this.trackSessionEnd(sessionId, createdAt);
-        //   }
-        //   DataManager.deleteSession();
-        //   console.log(`Event target: ${event.target}`);
-        //   console.log(`Event current target: ${event.currentTarget}`);
-        //   console.log(`Closed session on close: ${sessionId}`);
-        //   event.preventDefault();
-        //   return false;
-        // });
+    }
+
+    private bindEvents() {
+        document.addEventListener('readystatechange', event => {
+            if (document.readyState === 'complete') {
+                this.worker.start();
+                window.addEventListener('unload', (event) => {
+                    let [sessionId, createdAt, _] = DataManager.getSession();
+                    DataManager.deleteSession();
+                    if (sessionId && createdAt) {
+                        this.worker.stop();
+                        this.trackSessionEnd(sessionId, createdAt);
+                    }
+                })
+            }
+        });
     }
 
     reset() {

@@ -1,6 +1,6 @@
 {
   "name": "@datainsider/di-web-analytics",
-  "version": "0.1.9",
+  "version": "0.2.1",
   "description": "Data insider web analytics",
   "publishConfig": {
     "@datainsider:registry": "https://gitlab.com/api/v4/projects/21342430/packages/npm/"
@@ -19,6 +19,8 @@
   "author": "Data insider",
   "license": "MIT",
   "devDependencies": {
+
+    "@types/uuid": "^8.3.0",
     "@types/chai": "^4.2.11",
     "@types/lodash": "^4.14.157",
     "@types/mocha": "^5.2.4",

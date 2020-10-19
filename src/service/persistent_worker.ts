@@ -11,9 +11,14 @@ export class PersistentWorker {
     private readonly eventChannel = this.queue.create('event-channel');
     private readonly engageChannel = this.queue.create('engage-channel');
 
-    constructor() {
+    start() {
         this.eventChannel.start();
         this.engageChannel.start();
+    }
+
+    stop() {
+        this.eventChannel.stop();
+        this.engageChannel.stop();
     }
 
     enqueueEvent(trackingApiKey: string, event: string, properties: Properties) {
@@ -34,7 +39,7 @@ export class PersistentWorker {
 }
 
 class SubmitEventWorker {
-    retry = 3;
+    retry = 1;
 
     async handle(message: any) {
         let trackingApiKey = message.trackingApiKey;
@@ -76,13 +81,12 @@ class SubmitEventWorker {
 
 
 class SubmitEngageWorker {
-    retry = 3;
+    retry = 1;
 
     async handle(message: any) {
         let trackingApiKey = message.trackingApiKey;
         let userId = message.userId;
         let properties = message.properties as Properties;
-        console.log(`SubmitEngageWorker::handle: ${userId} - ${properties}`);
         return this.getTrackingId(trackingApiKey).then(trackingId => {
             properties['di_tracking_id'] = trackingId || properties['di_tracking_id'] || '';
             return trackingService.engage(trackingApiKey, userId, properties);
