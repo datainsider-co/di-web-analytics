@@ -1,6 +1,6 @@
-import {TrackingRepository} from './tracking.repository';
-import {Properties} from '../domain';
-import {BaseClient} from '../service';
+import { TrackingRepository } from './tracking.repository';
+import { Properties } from '../domain';
+import { BaseClient } from '../service';
 
 export class DITrackingRepository extends TrackingRepository {
 
@@ -13,11 +13,13 @@ export class DITrackingRepository extends TrackingRepository {
       trackingApiKey: trackingApiKey,
       userId: userId,
       properties: properties
+    }, {
+      params: { trackingApiKey: trackingApiKey }
     });
   }
 
   genTrackId(trackingApiKey: string): Promise<string> {
-    return this.client.post('/api/analytics/gen_track_id', {trackingApiKey: trackingApiKey});
+    return this.client.post('/api/analytics/gen_track_id', { trackingApiKey: trackingApiKey });
   }
 
   track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
@@ -25,6 +27,8 @@ export class DITrackingRepository extends TrackingRepository {
       trackingApiKey: trackingApiKey,
       event: event,
       properties: properties
+    }, {
+      params: { trackingApiKey: trackingApiKey }
     });
   }
 }
