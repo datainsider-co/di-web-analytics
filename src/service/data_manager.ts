@@ -1,6 +1,6 @@
-import { Properties as Properties } from '../domain';
+import {Properties as Properties} from '../domain';
 import MiniJson from 'mini-json';
-import { v4 as uuid } from 'uuid';
+import {v4 as uuid} from 'uuid';
 import LibConfig from '../domain/config';
 
 export class DataManager {
@@ -25,6 +25,8 @@ export class DataManager {
     localStorage.setItem(DataManager.TRACKING_SESSION_EXPIRED_AT, expiredAt.toString());
     localStorage.setItem(DataManager.TRACKING_SESSION_CREATED_AT, createdAt.toString());
     localStorage.setItem(DataManager.TRACKING_SESSION_ID, sessionId);
+
+    sessionStorage.setItem(`current_session_${sessionId}`, "1");
     return [sessionId, createdAt, expiredAt];
   }
 
@@ -33,6 +35,7 @@ export class DataManager {
 
     localStorage.setItem(DataManager.TRACKING_SESSION_EXPIRED_AT, expiredAt.toString());
     localStorage.setItem(DataManager.TRACKING_SESSION_ID, sessionId);
+    sessionStorage.setItem(`current_session_${sessionId}`, "1");
     return [sessionId, expiredAt];
   }
 
@@ -40,23 +43,22 @@ export class DataManager {
     localStorage.removeItem(DataManager.TRACKING_SESSION_ID);
     localStorage.removeItem(DataManager.TRACKING_SESSION_CREATED_AT);
     localStorage.removeItem(DataManager.TRACKING_SESSION_EXPIRED_AT);
-
   }
 
-  static getSession(): [string, number, number] {
-    let sessionId = localStorage.getItem(DataManager.TRACKING_SESSION_ID) || '';
-    let createdAt = localStorage.getItem(DataManager.TRACKING_SESSION_CREATED_AT) || '0';
-    let expiredAt = localStorage.getItem(DataManager.TRACKING_SESSION_EXPIRED_AT) || '0';
-    return [sessionId, Number.parseInt(createdAt), Number.parseInt(expiredAt)];
+  static getSession(): [string, boolean, number, number] {
+    const sessionId = localStorage.getItem(DataManager.TRACKING_SESSION_ID) || '';
+    const createdAt = Number.parseInt(localStorage.getItem(DataManager.TRACKING_SESSION_CREATED_AT) || '0');
+    const expiredAt = Number.parseInt(localStorage.getItem(DataManager.TRACKING_SESSION_EXPIRED_AT) || '0');
+
+    return [sessionId, this.isSessionExpired(sessionId, expiredAt), createdAt, expiredAt];
   }
 
-  private static isSesstionExpired(): boolean {
-    let sessionId = localStorage.getItem(DataManager.TRACKING_SESSION_ID);
-    let expiredAt = localStorage.getItem(DataManager.TRACKING_SESSION_EXPIRED_AT);
+  private static isSessionExpired(sessionId: string, expiredAt: number): boolean {
+    const notInSessionStorage = !sessionStorage.getItem(`current_session_${sessionId}`);
     if (sessionId && expiredAt) {
-      return Date.now() >= Number.parseInt(expiredAt)
+      return notInSessionStorage || (Date.now() >= expiredAt)
     } else {
-      return false;
+      return notInSessionStorage || !sessionId;
     }
   }
 

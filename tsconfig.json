@@ -14,8 +14,13 @@
     "lib": [
       "ESNext",
       "DOM",
-      "DOM.Iterable",
-    ]
+      "DOM.Iterable"
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts"

@@ -1,10 +1,6 @@
-import { Properties } from '../domain';
-import { DataManager } from './data_manager';
-import { trackingService } from './di_tracking.service';
-import LibConfig from '../domain/config';
-import AnalyticsUtils from '../analytics_utils';
-import { EventStopWatch } from './event_stopwatch';
-import { AnalyticsCore } from './analytics_core';
+import {Properties} from '../domain';
+import {DataManager} from './data_manager';
+import {AnalyticsCore} from './analytics_core';
 
 export class DiAnalytics {
   private static instance: AnalyticsCore;
@@ -36,9 +32,8 @@ export class DiAnalytics {
     }
   }
 
-  static reset(): DiAnalytics {
-    this.getInstance().reset();
-    return this;
+  static autoTrackDom(cssSelector: string) {
+
   }
 
   static enterScreenStart(name: string) {
@@ -78,6 +73,11 @@ export class DiAnalytics {
   static async setUserProfile(userId: string, properties: Properties = {}) {
     this.getInstance().touchSession();
     return this.getInstance().setUserProfile(userId, properties);
+  }
+
+  static reset(): DiAnalytics {
+    this.getInstance().reset();
+    return this;
   }
 }
 
