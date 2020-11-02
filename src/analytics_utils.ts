@@ -1,5 +1,5 @@
 import Bowser from 'bowser';
-import { Properties } from './domain/properties';
+import {Properties} from './domain/properties';
 
 export class PlatformInfo {
   readonly type: string;
@@ -59,15 +59,15 @@ export default class AnalyticsUtils {
   static readonly QUERY_PARAM_REGEXP = new RegExp('[\\?&]?(\\w+)=([^&#]*)', 'g');
 
 
-  static buildPageAndReferrerInfo(): Properties {
-    const url = new URL(window.document.URL);
+  static buildPageAndReferrerInfo(currentUrl?: string, referrerUrl?: string): Properties {
+    const url = new URL(currentUrl??window.document.URL);
     const properties = {
       'di_url': url.href,
       'di_path': `${url.hostname}${url.pathname}`,
       'di_url_params': JSON.stringify(AnalyticsUtils.getQueryParams(url.search)),
     } as Properties;
-    if (window.document.referrer) {
-      const referrer = new URL(window.document.referrer);
+    if (referrerUrl??window.document.referrer) {
+      const referrer = new URL(referrerUrl??window.document.referrer);
       properties['di_referrer_host'] = referrer.host;
       properties['di_referrer'] = referrer.href;
       properties['di_referrer_search_engine'] = AnalyticsUtils.getSearchEngine(referrer.href);

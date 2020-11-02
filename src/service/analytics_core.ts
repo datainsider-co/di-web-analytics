@@ -5,7 +5,7 @@ import LibConfig from '../domain/config';
 import AnalyticsUtils from '../analytics_utils';
 import {EventStopWatch} from '../misc/event_stopwatch';
 import {PersistentWorker} from './persistent_worker';
-import {SystemEvents} from "@/domain/system_events";
+import {SystemEvents} from "../domain/system_events";
 
 export class AnalyticsCore {
   private trackingApiKey: string;
@@ -167,7 +167,7 @@ export class AnalyticsCore {
       ...this.globalProperties,
       ...properties,
       ...AnalyticsUtils.buildClientSpecifications(),
-      ...AnalyticsUtils.buildPageAndReferrerInfo(),
+      ...AnalyticsUtils.buildPageAndReferrerInfo(properties['di_url'], properties['di_referrer']),
       'di_user_id': DataManager.getUserId() || '',
       'di_lib_platform': LibConfig.platform,
       'di_lib_version': LibConfig.version,
