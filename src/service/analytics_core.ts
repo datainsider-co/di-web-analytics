@@ -1,11 +1,11 @@
-import {Properties} from '../domain';
-import {DataManager} from './data_manager';
-import {trackingService} from './di_tracking.service';
+import { Properties } from '../domain';
+import { DataManager } from './data_manager';
+import { trackingService } from './di_tracking.service';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../analytics_utils';
-import {EventStopWatch} from '../misc/event_stopwatch';
-import {PersistentWorker} from './persistent_worker';
-import {SystemEvents} from "@/domain/system_events";
+import { EventStopWatch } from '../misc/event_stopwatch';
+import { PersistentWorker } from './persistent_worker';
+import { SystemEvents, EventColumnIds } from '../domain/system_events';
 
 export class AnalyticsCore {
   private trackingApiKey: string;
@@ -86,7 +86,7 @@ export class AnalyticsCore {
 
   async enterScreen(name: string, properties: Properties = {}) {
     this.time(`di_pageview_${name}`);
-    properties["di_screen_name"] = name;
+    properties[EventColumnIds.SCREEN_NAME] = name;
     this.lastScreenName = name || '';
     return this.track(SystemEvents.SCREEN_ENTER, properties);
   }
@@ -94,25 +94,25 @@ export class AnalyticsCore {
   async exitScreen(name: string, properties: Properties = {}) {
     let [startTime, duration] = this.stopWatch.stopAndPop(`di_pageview_${name}`);
 
-    properties["di_screen_name"] = name;
-    properties["di_start_time"] = startTime || 0;
-    properties["di_duration"] = duration || 0;
+    properties[EventColumnIds.SCREEN_NAME] = name;
+    properties[EventColumnIds.START_TIME] = startTime || 0;
+    properties[EventColumnIds.DURATION] = duration || 0;
     this.lastScreenName = '';
     return this.track(SystemEvents.PAGE_VIEW, properties);
   }
 
   trackSessionCreated(sessionId: string, createdAt: number) {
     let properties = {} as Properties;
-    properties['di_session_id'] = sessionId;
-    properties['di_time'] = createdAt;
+    properties[EventColumnIds.SESSION_ID] = sessionId;
+    properties[EventColumnIds.TIME] = createdAt;
     return this.track(SystemEvents.SESSION_CREATED, properties);
   }
 
   trackSessionEnd(sessionId: string, createdAt: number) {
     let properties = {} as Properties;
-    properties['di_session_id'] = sessionId;
-    properties['di_start_time'] = createdAt;
-    properties['di_duration'] = (Date.now() - createdAt);
+    properties[EventColumnIds.SESSION_ID] = sessionId;
+    properties[EventColumnIds.START_TIME] = createdAt;
+    properties[EventColumnIds.DURATION] = (Date.now() - createdAt);
     return this.track(SystemEvents.SESSION_END, properties);
   }
 
@@ -141,7 +141,7 @@ export class AnalyticsCore {
 
 
   touchSession(): void {
-    const [sessionId, isExpired, createdAt, expiredAt] = DataManager.getSession();
+    const [sessionId, isExpired, createdAt, _] = DataManager.getSession();
     if (isExpired) {
       if (!sessionId) {
         this.trackSessionEnd(sessionId, createdAt);
@@ -160,37 +160,44 @@ export class AnalyticsCore {
 
   private buildTrackingProperties(event: string, properties: Properties): Properties {
     const trackingId = DataManager.getTrackingId();
-    let [sessionId, _] = DataManager.getSession();
+    const [sessionId, _] = DataManager.getSession();
     this.enrichScreenName(properties);
     this.enrichDuration(event, properties);
-    return {
+
+    const result: Properties = {
       ...this.globalProperties,
       ...properties,
       ...AnalyticsUtils.buildClientSpecifications(),
-      ...AnalyticsUtils.buildPageAndReferrerInfo(),
-      'di_user_id': DataManager.getUserId() || '',
-      'di_lib_platform': LibConfig.platform,
-      'di_lib_version': LibConfig.version,
-      'di_session_id': sessionId || properties['di_session_id'] || '',
-      'di_tracking_id': trackingId || properties['di_tracking_id'] || '',
-      'di_time': properties['di_time'] || Date.now(),
+      ...AnalyticsUtils.buildPageAndReferrerInfo(
+        properties[EventColumnIds.URL],
+        properties[EventColumnIds.REFERRER]
+      )
     };
+
+    result[EventColumnIds.LIB_PLATFORM] = LibConfig.platform;
+    result[EventColumnIds.LIB_VERSION] = LibConfig.version;
+    result[EventColumnIds.SESSION_ID] = sessionId || properties[EventColumnIds.SESSION_ID] || '';
+    result[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
+    result[EventColumnIds.USER_ID] = DataManager.getUserId() || '';
+    result[EventColumnIds.TIME] = properties[EventColumnIds.TIME] || Date.now();
+
+    return result;
   }
 
   private enrichScreenName(properties: Properties) {
-    if (!properties['di_screen_name']) {
-      properties['di_screen_name'] = this.lastScreenName || window.document.location.pathname;
+    if (!properties[EventColumnIds.SCREEN_NAME]) {
+      properties[EventColumnIds.SCREEN_NAME] = this.lastScreenName || window.document.location.pathname;
     }
   }
 
 
   private enrichDuration(event: string, properties: Properties) {
     let [startTime, duration] = this.stopWatch.stopAndPop(event);
-    if (!properties['di_start_time']) {
-      properties['di_start_time'] = startTime || 0;
+    if (!properties[EventColumnIds.START_TIME]) {
+      properties[EventColumnIds.START_TIME] = startTime || 0;
     }
-    if (!properties['di_duration']) {
-      properties['di_duration'] = duration || 0;
+    if (!properties[EventColumnIds.DURATION]) {
+      properties[EventColumnIds.DURATION] = duration || 0;
     }
 
   }

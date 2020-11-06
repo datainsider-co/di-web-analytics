@@ -14,7 +14,7 @@ export class DITrackingRepository extends TrackingRepository {
       userId: userId,
       properties: properties
     }, {
-      params: { trackingApiKey: trackingApiKey }
+      params: { 'tracking_api_key': trackingApiKey }
     });
   }
 
@@ -28,7 +28,7 @@ export class DITrackingRepository extends TrackingRepository {
       event: event,
       properties: properties
     }, {
-      params: { trackingApiKey: trackingApiKey }
+      params: { 'tracking_api_key': trackingApiKey }
     });
   }
 }
