@@ -1,5 +1,6 @@
-import Axios, {AxiosInstance, AxiosRequestConfig, AxiosResponse} from 'axios';
+import Axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import MiniJson from 'mini-json';
+import LibConfig from '../domain/config';
 
 export abstract class BaseClient {
   abstract get(path: string, config: { params?: any, headers?: any }): Promise<string>;
@@ -21,30 +22,30 @@ class HttpClient extends BaseClient {
 
   delete(path: string, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-    .delete<string>(path, {...config})
-    .then(HttpClient.getData)
-    .catch(ex => HttpClient.handleError(path, ex));
+      .delete<string>(path, { ...config })
+      .then(HttpClient.getData)
+      .catch(ex => HttpClient.handleError(path, ex));
   }
 
   get(path: string, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-    .get<string>(path, {...config})
-    .then(HttpClient.getData)
-    .catch(ex => HttpClient.handleError(path, ex));
+      .get<string>(path, { ...config })
+      .then(HttpClient.getData)
+      .catch(ex => HttpClient.handleError(path, ex));
   }
 
   post(path: string, body?: any, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-    .post<string>(path, body, {...config})
-    .then(HttpClient.getData)
-    .catch((ex) => HttpClient.handleError(path, ex));
+      .post<string>(path, body, { ...config })
+      .then(HttpClient.getData)
+      .catch((ex) => HttpClient.handleError(path, ex));
   }
 
   put(path: string, body?: any, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-    .put<string>(path, body, {...config})
-    .then(HttpClient.getData)
-    .catch(ex => HttpClient.handleError(path, ex));
+      .put<string>(path, body, { ...config })
+      .then(HttpClient.getData)
+      .catch(ex => HttpClient.handleError(path, ex));
   }
 
   private static getData(response: AxiosResponse<string>): string {
@@ -60,18 +61,16 @@ class HttpClient extends BaseClient {
       const apiException = MiniJson.fromJson<any>(reason.response.data);
       return Promise.reject(apiException);
     } else {
-      const baseException = {message: reason.message};
+      const baseException = { message: reason.message };
       return Promise.reject(baseException);
     }
   }
 }
 
 const _clientConfig: AxiosRequestConfig = {
-  baseURL: 'http://dev.datainsider.co',
-  timeout: 45000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: LibConfig.baseUrl,
+  timeout: LibConfig.timeout,
+  headers: LibConfig.baseHeaders
 };
 
 
