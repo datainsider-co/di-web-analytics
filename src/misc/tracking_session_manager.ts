@@ -1,7 +1,7 @@
 import {v4 as uuid} from 'uuid';
 import LibConfig from '../domain/config';
-import {TrackingSessionInfo} from "@/domain/tracking_session_info";
-import {Properties} from "@/domain";
+import {TrackingSessionInfo} from "../domain/tracking_session_info";
+import {Properties} from "../domain";
 
 export class TrackingSessionManager {
   static readonly SESSION_KEY = 'di.tracking_session';
