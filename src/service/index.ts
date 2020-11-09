@@ -1,6 +1,5 @@
-export * from './tracking.service';
-export * from './cookie_manager';
-export * from './base_client';
-export * from './di_tracking.service';
-export * from './data_manager';
+export * from './tracking_service';
+export * from '../misc/cookie_manager';
+export * from '../misc/base_client';
+export * from '../misc/data_manager';
 

@@ -1,7 +1,7 @@
 import {Properties} from "../domain";
 import Queue from "storage-based-queue";
-import {trackingService} from '../service/di_tracking.service';
-import {DataManager} from '../service/data_manager';
+import {trackingService} from '../service/tracking_service';
+import {DataManager} from './data_manager';
 import {EventColumnIds} from '../domain/system_events';
 
 async function getTrackingId(trackingApiKey: string): Promise<string> {
@@ -22,7 +22,7 @@ async function getTrackingId(trackingApiKey: string): Promise<string> {
   return trackId;
 }
 
-class SubmitEventWorker {
+export class SubmitEventWorker {
   retry = 1;
 
   async handle(message: any): Promise<any> {
@@ -46,7 +46,7 @@ class SubmitEventWorker {
 
 }
 
-class SubmitEngageWorker {
+export class SubmitEngageWorker {
   retry = 1;
 
   async handle(message: any): Promise<any> {

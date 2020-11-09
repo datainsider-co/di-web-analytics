@@ -1,11 +1,13 @@
-import { Properties } from '../domain';
-import { DataManager } from './data_manager';
-import { trackingService } from './di_tracking.service';
+import {Properties} from '../domain';
+import {DataManager} from '../misc/data_manager';
+import {trackingService} from './tracking_service';
 import LibConfig from '../domain/config';
-import AnalyticsUtils from '../analytics_utils';
-import { EventStopWatch } from '../misc/event_stopwatch';
-import { PersistentQueue } from '../misc/persistent_queue';
-import { SystemEvents, EventColumnIds } from '../domain/system_events';
+import AnalyticsUtils from '../misc/analytics_utils';
+import {EventStopWatch} from '../misc/event_stopwatch';
+import {PersistentQueue} from '../misc/persistent_queue';
+import {EventColumnIds, SystemEvents} from '../domain/system_events';
+import {TrackingSessionManager} from "@/misc/tracking_session_manager";
+import {TrackingSessionInfo} from "@/domain/tracking_session_info";
 
 export class AnalyticsCore {
   private trackingApiKey: string;
@@ -20,7 +22,7 @@ export class AnalyticsCore {
   constructor(trackingApiKey: string, properties: Properties) {
     this.trackingApiKey = trackingApiKey;
     let props = {
-      ...DataManager.getGlobalPropertes(),
+      ...DataManager.getGlobalProperties(),
       ...properties
     };
     DataManager.setGlobalProperties(props);
@@ -100,20 +102,6 @@ export class AnalyticsCore {
     return this.track(SystemEvents.PAGE_VIEW, properties);
   }
 
-  trackSessionCreated(sessionId: string, createdAt: number) {
-    let properties = {} as Properties;
-    properties[EventColumnIds.SESSION_ID] = sessionId;
-    properties[EventColumnIds.TIME] = createdAt;
-    return this.track(SystemEvents.SESSION_CREATED, properties);
-  }
-
-  trackSessionEnd(sessionId: string, createdAt: number) {
-    let properties = {} as Properties;
-    properties[EventColumnIds.SESSION_ID] = sessionId;
-    properties[EventColumnIds.START_TIME] = createdAt;
-    properties[EventColumnIds.DURATION] = (Date.now() - createdAt);
-    return this.track(SystemEvents.SESSION_END, properties);
-  }
 
   time(event: string) {
     this.stopWatch.add(event);
@@ -121,10 +109,14 @@ export class AnalyticsCore {
 
   track(event: string, properties: Properties) {
     const eventProperties = this.buildTrackingProperties(event, properties);
-    this.worker.enqueueEvent(this.trackingApiKey, event, eventProperties);
+    this.trackEvent(event, eventProperties);
   }
 
-  //TODO: Send an event to server to resolve and old event with this user id
+  private trackEvent(event: string, properties: Properties) {
+    this.worker.enqueueEvent(this.trackingApiKey, event, properties);
+  }
+
+  //TODO: Send an event to server to resolve old events with this user id
   identify(userId: string) {
     const oldUserId = DataManager.getUserId();
     if (oldUserId && oldUserId.length !== 0 && oldUserId !== userId) {
@@ -140,26 +132,38 @@ export class AnalyticsCore {
 
 
   touchSession(): void {
-    const [sessionId, isExpired, createdAt, _] = DataManager.getSession();
-    if (isExpired) {
-      if (!sessionId) {
-        this.trackSessionEnd(sessionId, createdAt);
+    const sessionInfo = TrackingSessionManager.getSession();
+    if (sessionInfo.isExpired) {
+      if (!sessionInfo.sessionId) {
+        this.endSession(sessionInfo);
       }
       this.createSession();
     } else {
-      DataManager.updateSession(sessionId);
+      TrackingSessionManager.updateSession(sessionInfo.sessionId);
     }
   }
 
   private createSession() {
-    const [sessionId, createdAt, _] = DataManager.createSession();
-    this.trackSessionCreated(sessionId, createdAt);
+    const properties = this.buildTrackingProperties(SystemEvents.SESSION_CREATED, {})
+    const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
+    properties[EventColumnIds.SESSION_ID] = sessionId;
+    properties[EventColumnIds.TIME] = createdAt;
+    this.trackEvent(SystemEvents.SESSION_CREATED, properties);
+  }
+
+
+  private endSession(sessionInfo: TrackingSessionInfo) {
+    let properties = sessionInfo.properties || {};
+    properties[EventColumnIds.SESSION_ID] = sessionInfo.sessionId;
+    properties[EventColumnIds.START_TIME] = sessionInfo.createdAt;
+    properties[EventColumnIds.DURATION] = (Date.now() - sessionInfo.createdAt);
+    return this.track(SystemEvents.SESSION_END, properties);
   }
 
 
   private buildTrackingProperties(event: string, properties: Properties): Properties {
     const trackingId = DataManager.getTrackingId();
-    const [sessionId, _] = DataManager.getSession();
+    const sessionInfo = TrackingSessionManager.getSession();
     this.enrichScreenName(properties);
     this.enrichDuration(event, properties);
 
@@ -175,7 +179,7 @@ export class AnalyticsCore {
 
     result[EventColumnIds.LIB_PLATFORM] = LibConfig.platform;
     result[EventColumnIds.LIB_VERSION] = LibConfig.version;
-    result[EventColumnIds.SESSION_ID] = sessionId || properties[EventColumnIds.SESSION_ID] || '';
+    result[EventColumnIds.SESSION_ID] = sessionInfo.sessionId || properties[EventColumnIds.SESSION_ID] || '';
     result[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
     result[EventColumnIds.USER_ID] = DataManager.getUserId() || '';
     result[EventColumnIds.TIME] = properties[EventColumnIds.TIME] || Date.now();

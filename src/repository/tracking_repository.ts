@@ -1,6 +1,16 @@
-import { TrackingRepository } from './tracking.repository';
+
 import { Properties } from '../domain';
 import { BaseClient } from '../service';
+
+
+export abstract class TrackingRepository {
+  abstract genTrackId(trackingApiKey: string): Promise<string>;
+
+  abstract track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
+
+  abstract engage(trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
+}
+
 
 export class DITrackingRepository extends TrackingRepository {
 

@@ -1,6 +1,16 @@
 import Bowser from 'bowser';
-import { Properties } from './domain/properties';
-import { EventColumnIds } from './domain/system_events';
+import {Properties} from '../domain/properties';
+import {EventColumnIds} from '../domain/system_events';
+
+export enum SearchEngine {
+  GOOGLE = 'google',
+  BING = 'bing',
+  YAHOO = 'yahoo',
+  DUCKDUCKGO = 'duckduckgo',
+  COCCOC = 'coccoc',
+  YANINDEX = 'yandex',
+  UNKNOWN = ''
+}
 
 export class PlatformInfo {
   readonly type: string;
@@ -49,13 +59,6 @@ export class BrowserInfo {
 }
 
 export default class AnalyticsUtils {
-  static readonly SE_GOOGLE = 'google';
-  static readonly SE_BING = 'bing';
-  static readonly SE_YAHOO = 'yahoo';
-  static readonly SE_DUCKDUCKGO = 'duckduckgo';
-  static readonly SE_COCCOC = 'coccoc';
-  static readonly SE_YANINDEX = 'yandex';
-  static readonly SE_UNKNOWN = '';
 
   static readonly QUERY_PARAM_REGEXP = new RegExp('[\\?&]?(\\w+)=([^&#]*)', 'g');
 
@@ -120,19 +123,19 @@ export default class AnalyticsUtils {
 
   static getSearchEngine(referrer: string): string {
     if (referrer.search('https?://(.*)google.([^/?]*)') === 0) {
-      return AnalyticsUtils.SE_GOOGLE;
+      return SearchEngine.GOOGLE;
     } else if (referrer.search('https?://(.*)bing.com') === 0) {
-      return AnalyticsUtils.SE_BING;
+      return SearchEngine.BING;
     } else if (referrer.search('https?://(.*)yahoo.com') === 0) {
-      return AnalyticsUtils.SE_YAHOO;
+      return SearchEngine.YAHOO;
     } else if (referrer.search('https?://(.*)duckduckgo.com') === 0) {
-      return AnalyticsUtils.SE_DUCKDUCKGO;
+      return SearchEngine.DUCKDUCKGO;
     } else if (referrer.search('https?://(.*)coccoc.com') === 0) {
-      return AnalyticsUtils.SE_COCCOC;
+      return SearchEngine.COCCOC;
     } else if (referrer.search('https?://(.*)yandex.com') === 0) {
-      return AnalyticsUtils.SE_YANINDEX;
+      return SearchEngine.YANINDEX;
     } else {
-      return AnalyticsUtils.SE_UNKNOWN;
+      return SearchEngine.UNKNOWN;
     }
   }
 
@@ -140,16 +143,16 @@ export default class AnalyticsUtils {
     let searchEngine = this.getSearchEngine(referrer);
     let params = this.getQueryParams(referrer);
 
-    if (searchEngine === this.SE_YAHOO) {
+    if (searchEngine === SearchEngine.YAHOO) {
       return params['p'] || '';
-    } else if (searchEngine === this.SE_COCCOC) {
+    } else if (searchEngine === SearchEngine.COCCOC) {
       return params['query'] || '';
-    } else if (searchEngine === this.SE_YANINDEX) {
+    } else if (searchEngine === SearchEngine.YANINDEX) {
       return params['text'] || '';
-    } else if (searchEngine != this.SE_UNKNOWN) {
+    } else if (searchEngine != SearchEngine.UNKNOWN) {
       return params['q'] || '';
     } else {
-      return '';
+      return params['q'] || '';
     }
   }
 

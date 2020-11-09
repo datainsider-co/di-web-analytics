@@ -2,7 +2,7 @@ import { trackingService } from '../src/service';
 import { expect } from 'chai';
 import { iteratee } from 'lodash';
 import { Properties } from '../dist/domain/properties';
-import AnalyticsUtils from '../src/analytics_utils';
+import AnalyticsUtils from '../src/misc/analytics_utils';
 
 describe('URL Parser', () => {
 

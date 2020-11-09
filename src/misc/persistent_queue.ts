@@ -1,5 +1,6 @@
 import {Properties} from "../domain";
 import Queue from "storage-based-queue";
+import {SubmitEventWorker, SubmitEngageWorker} from './workers';
 
 export class PersistentQueue {
   private readonly queue = new Queue({
@@ -34,5 +35,4 @@ export class PersistentQueue {
     });
   }
 }
-
 Queue.workers({SubmitEventWorker, SubmitEngageWorker});

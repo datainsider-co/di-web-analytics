@@ -1,5 +1,5 @@
 import {Properties} from '../domain';
-import {DataManager} from './data_manager';
+import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore} from './analytics_core';
 
 export class DiAnalytics {
@@ -11,7 +11,7 @@ export class DiAnalytics {
       if (trackingApiKey) {
         this.init(trackingApiKey);
       } else {
-        throw new Error('DiAnalytics: You have to call DiAnalytics.init first.');
+        throw new Error('DiAnalytics: You have to call DiAnalytics.getInstance first.');
       }
     }
     return this.instance;
