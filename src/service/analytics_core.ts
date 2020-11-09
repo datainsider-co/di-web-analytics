@@ -6,8 +6,8 @@ import AnalyticsUtils from '../misc/analytics_utils';
 import {EventStopWatch} from '../misc/event_stopwatch';
 import {PersistentQueue} from '../misc/persistent_queue';
 import {EventColumnIds, SystemEvents} from '../domain/system_events';
-import {TrackingSessionManager} from "@/misc/tracking_session_manager";
-import {TrackingSessionInfo} from "@/domain/tracking_session_info";
+import {TrackingSessionManager} from "../misc/tracking_session_manager";
+import {TrackingSessionInfo} from "../domain/tracking_session_info";
 
 export class AnalyticsCore {
   private trackingApiKey: string;
