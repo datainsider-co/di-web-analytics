@@ -70,7 +70,7 @@ export class DiAnalytics {
     return this.getInstance().track(event, properties);
   }
 
-  static async identify(userId: string) {
+  static identify(userId: string) {
     this.getInstance().touchSession();
     return this.getInstance().identify(userId);
   }
