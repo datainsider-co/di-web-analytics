@@ -4,7 +4,7 @@ import { trackingService } from './di_tracking.service';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../analytics_utils';
 import { EventStopWatch } from '../misc/event_stopwatch';
-import { PersistentWorker } from './persistent_worker';
+import { PersistentQueue } from '../misc/persistent_queue';
 import { SystemEvents, EventColumnIds } from '../domain/system_events';
 
 export class AnalyticsCore {
@@ -14,7 +14,7 @@ export class AnalyticsCore {
   private lastScreenName?: string;
 
   private readonly stopWatch: EventStopWatch = new EventStopWatch();
-  private readonly worker: PersistentWorker = new PersistentWorker();
+  private readonly worker: PersistentQueue = new PersistentQueue();
 
 
   constructor(trackingApiKey: string, properties: Properties) {
@@ -28,17 +28,16 @@ export class AnalyticsCore {
     this.getTrackingId().then(() => {
       this.touchSession();
     });
-
-    this.bindEvents();
-
+    this.setupAndStartWorker();
   }
 
-  private bindEvents() {
+  private setupAndStartWorker() {
     document.addEventListener('readystatechange', event => {
       if (document.readyState === 'complete') {
+
         this.worker.start();
 
-        window.addEventListener('unload', (event) => {
+        document.addEventListener('unload', (event) => {
           this.touchSession();
           this.worker.stop();
         });

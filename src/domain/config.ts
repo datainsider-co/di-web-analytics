@@ -1,5 +1,5 @@
 //@ts-ignore
-const pkg = require('./package.json')
+const pkg = require('../../package.json')
 
 const LibConfig = Object.freeze({
     baseUrl: 'http://dev.datainsider.co',
