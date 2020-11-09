@@ -134,7 +134,7 @@ export class AnalyticsCore {
   touchSession(): void {
     const sessionInfo = TrackingSessionManager.getSession();
     if (sessionInfo.isExpired) {
-      if (!sessionInfo.sessionId) {
+      if (sessionInfo.sessionId) {
         this.endSession(sessionInfo);
       }
       this.createSession();
