@@ -50,7 +50,7 @@ class CookieMangerImpl extends CookieManger {
   }
 
   putMaxAge(key: string, value: string, maxAge?: number, path?: string): boolean {
-    document.cookie = `${key}=${value};maxAge=${maxAge};path=${path}`;
+    document.cookie += `${key}=${value};max-age=${maxAge};path=${path}`;
     return true;
   }
 }

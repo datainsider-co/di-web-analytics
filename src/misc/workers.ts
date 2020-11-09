@@ -29,7 +29,6 @@ export class SubmitEventWorker {
     let trackingApiKey = message.trackingApiKey;
     let event = message.event;
     let properties = message.properties as Properties;
-    console.info(`SubmitEventWorker::handle: ${event} - ${properties}`);
     return getTrackingId(trackingApiKey).then(trackingId => {
       properties[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
       return trackingService.track(trackingApiKey, event, properties);

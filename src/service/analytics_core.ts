@@ -8,8 +8,11 @@ import {PersistentQueue} from '../misc/persistent_queue';
 import {EventColumnIds, SystemEvents} from '../domain/system_events';
 import {TrackingSessionManager} from "../misc/tracking_session_manager";
 import {TrackingSessionInfo} from "../domain/tracking_session_info";
+import {Mutex} from 'async-mutex';
 
 export class AnalyticsCore {
+  private readonly mutex = new Mutex();
+
   private trackingApiKey: string;
   private globalProperties: Properties;
 
@@ -34,12 +37,10 @@ export class AnalyticsCore {
   }
 
   private setupAndStartWorker() {
+
     document.addEventListener('readystatechange', event => {
       if (document.readyState === 'complete') {
-
-        this.worker.start();
-
-        document.addEventListener('unload', (event) => {
+        window.addEventListener('unload', (event) => {
           this.touchSession();
           this.worker.stop();
         });
@@ -71,7 +72,7 @@ export class AnalyticsCore {
     return trackId;
   }
 
-  async register(properties: Properties) {
+  register(properties: Properties) {
     let props = {
       ...this.globalProperties,
       ...properties
@@ -80,19 +81,19 @@ export class AnalyticsCore {
     this.globalProperties = props;
   }
 
-  async enterScreenStart(name: string) {
+  enterScreenStart(name: string) {
     this.time(SystemEvents.SCREEN_ENTER);
     this.lastScreenName = name || '';
   }
 
-  async enterScreen(name: string, properties: Properties = {}) {
+  enterScreen(name: string, properties: Properties = {}): Promise<any> {
     this.time(`di_pageview_${name}`);
     properties[EventColumnIds.SCREEN_NAME] = name;
     this.lastScreenName = name || '';
     return this.track(SystemEvents.SCREEN_ENTER, properties);
   }
 
-  async exitScreen(name: string, properties: Properties = {}) {
+  exitScreen(name: string, properties: Properties = {}): Promise<any> {
     let [startTime, duration] = this.stopWatch.stopAndPop(`di_pageview_${name}`);
 
     properties[EventColumnIds.SCREEN_NAME] = name;
@@ -107,13 +108,13 @@ export class AnalyticsCore {
     this.stopWatch.add(event);
   }
 
-  track(event: string, properties: Properties) {
+  track(event: string, properties: Properties): Promise<any> {
     const eventProperties = this.buildTrackingProperties(event, properties);
-    this.trackEvent(event, eventProperties);
+    return this.trackEvent(event, eventProperties);
   }
 
-  private trackEvent(event: string, properties: Properties) {
-    this.worker.enqueueEvent(this.trackingApiKey, event, properties);
+  private trackEvent(event: string, properties: Properties): Promise<any> {
+    return this.worker.enqueueEvent(this.trackingApiKey, event, properties);
   }
 
   //TODO: Send an event to server to resolve old events with this user id
@@ -125,34 +126,39 @@ export class AnalyticsCore {
     DataManager.setUserId(userId);
   }
 
-  setUserProfile(userId: string, properties: Properties): void {
+  setUserProfile(userId: string, properties: Properties) {
     DataManager.setUserId(userId);
-    this.worker.enqueueEngage(this.trackingApiKey, userId, properties);
+    return this.worker.enqueueEngage(this.trackingApiKey, userId, properties);
   }
 
 
-  touchSession(): void {
-    const sessionInfo = TrackingSessionManager.getSession();
-    if (sessionInfo.isExpired) {
-      if (sessionInfo.sessionId) {
-        this.endSession(sessionInfo);
+  async touchSession(): Promise<any> {
+    const releaser = await this.mutex.acquire();
+    try {
+      const sessionInfo = TrackingSessionManager.getSession();
+      if (sessionInfo.isExpired) {
+        if (sessionInfo.sessionId) {
+          await this.endSession(sessionInfo);
+        }
+        await this.createSession();
+      } else {
+        TrackingSessionManager.updateSession(sessionInfo.sessionId);
       }
-      this.createSession();
-    } else {
-      TrackingSessionManager.updateSession(sessionInfo.sessionId);
+    } finally {
+      releaser();
     }
   }
 
-  private createSession() {
+  private createSession(): Promise<any> {
     const properties = this.buildTrackingProperties(SystemEvents.SESSION_CREATED, {})
     const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
     properties[EventColumnIds.SESSION_ID] = sessionId;
     properties[EventColumnIds.TIME] = createdAt;
-    this.trackEvent(SystemEvents.SESSION_CREATED, properties);
+    return this.trackEvent(SystemEvents.SESSION_CREATED, properties);
   }
 
 
-  private endSession(sessionInfo: TrackingSessionInfo) {
+  private endSession(sessionInfo: TrackingSessionInfo): Promise<any> {
     let properties = sessionInfo.properties || {};
     properties[EventColumnIds.SESSION_ID] = sessionInfo.sessionId;
     properties[EventColumnIds.START_TIME] = sessionInfo.createdAt;
