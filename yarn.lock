@@ -23,6 +23,17 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
+"@datainsider/di-web-analytics@../di-web-analytics":
+  version "0.4.6"
+  dependencies:
+    "@types/uuid" "^8.3.0"
+    async-mutex "^0.2.4"
+    axios "^0.20.0"
+    bowser "^2.11.0"
+    js-cookies "^1.0.4"
+    mini-json "^1.0.0"
+    storage-based-queue "^1.2.6"
+
 "@types/chai@^4.2.11":
   version "4.2.11"
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.11.tgz#d3614d6c5f500142358e6ed24e1bf16657536c50"

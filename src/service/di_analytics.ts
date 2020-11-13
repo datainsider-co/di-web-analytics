@@ -38,7 +38,7 @@ export class DiAnalytics {
 
   static async enterScreenStart(name: string) :Promise<any>{
     await this.getInstance().touchSession();
-    await this.getInstance().enterScreenStart(name);
+    this.getInstance().enterScreenStart(name);
   }
 
   static async enterScreen(name: string, properties: Properties = {}) :Promise<any>{

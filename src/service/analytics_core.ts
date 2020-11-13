@@ -1,14 +1,14 @@
-import {Properties} from '../domain';
-import {DataManager} from '../misc/data_manager';
-import {trackingService} from './tracking_service';
+import { Properties } from '../domain';
+import { DataManager } from '../misc/data_manager';
+import { trackingService } from './tracking_service';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../misc/analytics_utils';
-import {EventStopWatch} from '../misc/event_stopwatch';
-import {PersistentQueue} from '../misc/persistent_queue';
-import {EventColumnIds, SystemEvents} from '../domain/system_events';
-import {TrackingSessionManager} from "../misc/tracking_session_manager";
-import {TrackingSessionInfo} from "../domain/tracking_session_info";
-import {Mutex} from 'async-mutex';
+import { EventStopWatch } from '../misc/event_stopwatch';
+import { PersistentQueue } from '../misc/persistent_queue';
+import { EventColumnIds, SystemEvents } from '../domain/system_events';
+import { TrackingSessionManager } from "../misc/tracking_session_manager";
+import { TrackingSessionInfo } from "../domain/tracking_session_info";
+import { Mutex } from 'async-mutex';
 
 export class AnalyticsCore {
   private readonly mutex = new Mutex();
@@ -86,20 +86,20 @@ export class AnalyticsCore {
     this.lastScreenName = name || '';
   }
 
-  enterScreen(name: string, properties: Properties = {}): Promise<any> {
-    this.time(`di_pageview_${name}`);
-    properties[EventColumnIds.SCREEN_NAME] = name;
+  enterScreen(name: string, userProps: Properties = {}): Promise<any> {
     this.lastScreenName = name || '';
+    this.time(`di_pageview_${name}`);
+    const properties = { ...userProps };
+    properties[EventColumnIds.SCREEN_NAME] = name;
     return this.track(SystemEvents.SCREEN_ENTER, properties);
   }
 
-  exitScreen(name: string, properties: Properties = {}): Promise<any> {
+  exitScreen(name: string, userProps: Properties = {}): Promise<any> {
     let [startTime, duration] = this.stopWatch.stopAndPop(`di_pageview_${name}`);
-
+    const properties = { ...userProps };
     properties[EventColumnIds.SCREEN_NAME] = name;
     properties[EventColumnIds.START_TIME] = startTime || 0;
     properties[EventColumnIds.DURATION] = duration || 0;
-    this.lastScreenName = '';
     return this.track(SystemEvents.PAGE_VIEW, properties);
   }
 
@@ -194,6 +194,7 @@ export class AnalyticsCore {
   }
 
   private enrichScreenName(properties: Properties) {
+
     if (!properties[EventColumnIds.SCREEN_NAME]) {
       properties[EventColumnIds.SCREEN_NAME] = this.lastScreenName || window.document.location.pathname;
     }
