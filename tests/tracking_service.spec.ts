@@ -1,5 +1,5 @@
-import { trackingService } from '../src/service';
-import { expect } from 'chai';
+import {trackingService} from '../src/service';
+import {expect} from 'chai';
 
 describe('Test tracking service', () => {
   const trackId = 'trace_id_test';
@@ -42,7 +42,7 @@ describe('Test tracking service', () => {
       unit: 'USD',
       color: 'Red',
       connectivity: ['3G', '4G', '5G', 'Ethernet'],
-      ...{ diUserId: userId },
+      ...{diUserId: userId},
       createdAt: Date.now(),
       ...defaultValues
     });
@@ -57,11 +57,9 @@ describe('Test tracking service', () => {
       lastName: 'Thien',
       age: 18,
       email: 'tvc12@gmail.com',
-      gender: 'male',
-      countryCode: 'vn',
+      gender: 'Male',
       updatedTime: Date.now(),
       createdTime: Date.now(),
-      ...defaultEngageValues
     });
     console.log('engage::trackId::', trackId);
     expect(trackId).not.undefined;

@@ -19,7 +19,7 @@ export class DITrackingRepository extends TrackingRepository {
   }
 
   engage(trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined> {
-    return this.client.post('/api/analytics/engage', {
+    return this.client.post('/api/tracking/engage', {
       trackingApiKey: trackingApiKey,
       userId: userId,
       properties: properties
@@ -29,11 +29,11 @@ export class DITrackingRepository extends TrackingRepository {
   }
 
   genTrackId(trackingApiKey: string): Promise<string> {
-    return this.client.post('/api/analytics/gen_track_id', { trackingApiKey: trackingApiKey });
+    return this.client.post('/api/tracking/gen_track_id', { trackingApiKey: trackingApiKey });
   }
 
   track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
-    return this.client.post('/api/analytics/track', {
+    return this.client.post('/api/tracking/track', {
       trackingApiKey: trackingApiKey,
       event: event,
       properties: properties

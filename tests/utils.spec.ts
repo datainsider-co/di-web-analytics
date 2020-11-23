@@ -1,8 +1,5 @@
-import { trackingService } from '../src/service';
-import { expect } from 'chai';
-import { iteratee } from 'lodash';
-import { Properties } from '../dist/domain/properties';
-import AnalyticsUtils from '../src/misc/analytics_utils';
+import {expect} from 'chai';
+import AnalyticsUtils, {SearchEngine} from '../src/misc/analytics_utils';
 
 describe('URL Parser', () => {
 
@@ -33,13 +30,13 @@ describe('URL Parser', () => {
 
   it('Get search engine success', async () => {
 
-    expect(AnalyticsUtils.getSearchEngine('https://www.google.com/')).equal(AnalyticsUtils.SE_GOOGLE);
-    expect(AnalyticsUtils.getSearchEngine('https://www.bing.com/')).equal(AnalyticsUtils.SE_BING);
-    expect(AnalyticsUtils.getSearchEngine('https://www.yahoo.com/')).equal(AnalyticsUtils.SE_YAHOO);
-    expect(AnalyticsUtils.getSearchEngine('https://www.duckduckgo.com/')).equal(AnalyticsUtils.SE_DUCKDUCKGO);
-    expect(AnalyticsUtils.getSearchEngine('https://www.coccoc.com/')).equal(AnalyticsUtils.SE_COCCOC);
-    expect(AnalyticsUtils.getSearchEngine('https://www.yandex.com/')).equal(AnalyticsUtils.SE_YANINDEX);
-    expect(AnalyticsUtils.getSearchEngine('https://dictionary.cambridge.org/')).equal(AnalyticsUtils.SE_UNKNOWN);
+    expect(AnalyticsUtils.getSearchEngine('https://www.google.com/')).equal(SearchEngine.GOOGLE);
+    expect(AnalyticsUtils.getSearchEngine('https://www.bing.com/')).equal(SearchEngine.BING);
+    expect(AnalyticsUtils.getSearchEngine('https://www.yahoo.com/')).equal(SearchEngine.YAHOO);
+    expect(AnalyticsUtils.getSearchEngine('https://www.duckduckgo.com/')).equal(SearchEngine.DUCKDUCKGO);
+    expect(AnalyticsUtils.getSearchEngine('https://www.coccoc.com/')).equal(SearchEngine.COCCOC);
+    expect(AnalyticsUtils.getSearchEngine('https://www.yandex.com/')).equal(SearchEngine.YANINDEX);
+    expect(AnalyticsUtils.getSearchEngine('https://dictionary.cambridge.org/')).equal(SearchEngine.UNKNOWN);
 
   });
 
@@ -54,7 +51,6 @@ describe('URL Parser', () => {
     expect(AnalyticsUtils.getSearchKeyword('https://yandex.com/search/?text=time&lr=10553&redircnt=1602155471.1')).equal('time');
 
   });
-
 
 
   it('Get Device Platform from user agent success', async () => {
