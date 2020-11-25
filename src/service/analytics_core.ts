@@ -164,6 +164,7 @@ export class AnalyticsCore {
     properties[EventColumnIds.SESSION_ID] = sessionInfo.sessionId;
     properties[EventColumnIds.START_TIME] = sessionInfo.createdAt;
     properties[EventColumnIds.DURATION] = (Date.now() - sessionInfo.createdAt);
+    properties[EventColumnIds.TIME] = Date.now();
     return this.track(SystemEvents.SESSION_END, properties);
   }
 
