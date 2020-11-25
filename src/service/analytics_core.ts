@@ -154,6 +154,7 @@ export class AnalyticsCore {
     const properties = this.buildTrackingProperties(SystemEvents.SESSION_CREATED, {})
     const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
     properties[EventColumnIds.SESSION_ID] = sessionId;
+    properties[EventColumnIds.START_TIME] = createdAt;
     properties[EventColumnIds.TIME] = createdAt;
     return this.trackEvent(SystemEvents.SESSION_CREATED, properties);
   }
