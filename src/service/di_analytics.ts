@@ -1,6 +1,6 @@
-import { Properties } from '../domain';
-import { DataManager } from '../misc/data_manager';
-import { AnalyticsCore } from './analytics_core';
+import {Properties} from '../domain';
+import {DataManager} from '../misc/data_manager';
+import {AnalyticsCore} from './analytics_core';
 
 export class DiAnalytics {
   private static instance: AnalyticsCore;
@@ -36,43 +36,46 @@ export class DiAnalytics {
 
   }
 
-  static async enterScreenStart(name: string) :Promise<any>{
+  static async enterScreenStart(name: string): Promise<any> {
     await this.getInstance().touchSession();
     this.getInstance().enterScreenStart(name);
   }
 
-  static async enterScreen(name: string, properties: Properties = {}) :Promise<any>{
+  static async enterScreen(name: string, properties: Properties = {}): Promise<any> {
     await this.getInstance().touchSession();
     await this.getInstance().enterScreen(name, properties);
   }
 
-  static async exitScreen(name: string, properties: Properties = {}):Promise<any> {
+  static async exitScreen(name: string, properties: Properties = {}): Promise<any> {
     await this.getInstance().touchSession();
     await this.getInstance().exitScreen(name, properties);
   }
 
-  static register(properties: Properties){
-    this.getInstance().touchSession();
-    this.getInstance().register(properties);
+  static register(properties: Properties) {
+    this.getInstance().touchSession().then(_ => {
+      this.getInstance().register(properties);
+    });
+
   }
 
   static time(event: string): DiAnalytics {
-    this.getInstance().touchSession();
-    this.getInstance().time(event);
+    this.getInstance().touchSession().then(_ => {
+      this.getInstance().time(event);
+    });
     return this;
   }
 
-  static async track(event: string, properties: Properties = {}):Promise<any> {
+  static async track(event: string, properties: Properties = {}): Promise<any> {
     await this.getInstance().touchSession();
     return this.getInstance().track(event, properties);
   }
 
-  static async identify(userId: string):Promise<any> {
+  static async identify(userId: string): Promise<any> {
     await this.getInstance().touchSession();
     return this.getInstance().identify(userId);
   }
 
-  static async setUserProfile(userId: string, properties: Properties = {}):Promise<any> {
+  static async setUserProfile(userId: string, properties: Properties = {}): Promise<any> {
     await this.getInstance().touchSession();
     return this.getInstance().setUserProfile(userId, properties);
   }

@@ -3,8 +3,13 @@ import LibConfig from '../domain/config';
 import {TrackingSessionInfo} from "../domain/tracking_session_info";
 import {Properties} from "../domain";
 
+
 export class TrackingSessionManager {
   static readonly SESSION_KEY = 'di.tracking_session';
+
+  static buildSessionStorageKey(sessionId: string): string {
+    return `current_session_${sessionId}`;
+  }
 
   static createSession(properties: Properties): [string, number, number] {
     let sessionId = uuid();
@@ -21,25 +26,28 @@ export class TrackingSessionManager {
     };
 
     localStorage.setItem(TrackingSessionManager.SESSION_KEY, JSON.stringify(sessionInfo));
-    sessionStorage.setItem(`current_session_${sessionId}`, "1");
+    sessionStorage.setItem(this.buildSessionStorageKey(sessionId), "1");
     return [sessionId, createdAt, expiredAt];
   }
 
   static updateSession(sessionId: string): void {
     const lastActivityAt = Date.now();
-    let expiredAt = lastActivityAt + LibConfig.sessionMaxInactiveDuration;
 
     const dataAsJSON = localStorage.getItem(TrackingSessionManager.SESSION_KEY)
     if (dataAsJSON) {
       let sessionInfo = JSON.parse(dataAsJSON) as TrackingSessionInfo;
       sessionInfo.lastActivityAt = lastActivityAt;
-      sessionInfo.expiredAt = expiredAt;
+      sessionInfo.expiredAt = lastActivityAt + LibConfig.sessionMaxInactiveDuration;
       localStorage.setItem(TrackingSessionManager.SESSION_KEY, JSON.stringify(sessionInfo));
-      sessionStorage.setItem(`current_session_${sessionId}`, "1");
+      sessionStorage.setItem(this.buildSessionStorageKey(sessionId), "1");
     }
   }
 
   static deleteSession() {
+    const session = this.getSession();
+    if (session && session.sessionId) {
+      sessionStorage.removeItem(this.buildSessionStorageKey(session.sessionId));
+    }
     localStorage.removeItem(TrackingSessionManager.SESSION_KEY);
   }
 
@@ -69,7 +77,7 @@ export class TrackingSessionManager {
   }
 
   private static isSessionExpired(sessionId: string | undefined, expiredAt: number): boolean {
-    const notInSessionStorage = !sessionStorage.getItem(`current_session_${sessionId}`);
+    const notInSessionStorage = !sessionStorage.getItem(this.buildSessionStorageKey(sessionId ?? ''));
     if (sessionId && expiredAt) {
       return notInSessionStorage || (Date.now() >= expiredAt)
     } else {

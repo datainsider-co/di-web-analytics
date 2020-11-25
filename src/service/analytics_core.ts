@@ -1,14 +1,14 @@
-import { Properties } from '../domain';
-import { DataManager } from '../misc/data_manager';
-import { trackingService } from './tracking_service';
+import {Properties} from '../domain';
+import {DataManager} from '../misc/data_manager';
+import {trackingService} from './tracking_service';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../misc/analytics_utils';
-import { EventStopWatch } from '../misc/event_stopwatch';
-import { PersistentQueue } from '../misc/persistent_queue';
-import { EventColumnIds, SystemEvents } from '../domain/system_events';
-import { TrackingSessionManager } from "../misc/tracking_session_manager";
-import { TrackingSessionInfo } from "../domain/tracking_session_info";
-import { Mutex } from 'async-mutex';
+import {EventStopWatch} from '../misc/event_stopwatch';
+import {PersistentQueue} from '../misc/persistent_queue';
+import {EventColumnIds, SystemEvents} from '../domain/system_events';
+import {TrackingSessionManager} from "../misc/tracking_session_manager";
+import {TrackingSessionInfo} from "../domain/tracking_session_info";
+import {Mutex} from 'async-mutex';
 
 export class AnalyticsCore {
   private readonly mutex = new Mutex();
@@ -89,14 +89,14 @@ export class AnalyticsCore {
   enterScreen(name: string, userProps: Properties = {}): Promise<any> {
     this.lastScreenName = name || '';
     this.time(`di_pageview_${name}`);
-    const properties = { ...userProps };
+    const properties = {...userProps};
     properties[EventColumnIds.SCREEN_NAME] = name;
     return this.track(SystemEvents.SCREEN_ENTER, properties);
   }
 
   exitScreen(name: string, userProps: Properties = {}): Promise<any> {
     let [startTime, duration] = this.stopWatch.stopAndPop(`di_pageview_${name}`);
-    const properties = { ...userProps };
+    const properties = {...userProps};
     properties[EventColumnIds.SCREEN_NAME] = name;
     properties[EventColumnIds.START_TIME] = startTime || 0;
     properties[EventColumnIds.DURATION] = duration || 0;
@@ -140,6 +140,7 @@ export class AnalyticsCore {
         if (sessionInfo.sessionId) {
           await this.endSession(sessionInfo);
         }
+        await TrackingSessionManager.deleteSession();
         await this.createSession();
       } else {
         TrackingSessionManager.updateSession(sessionInfo.sessionId);
