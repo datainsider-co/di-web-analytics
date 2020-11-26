@@ -3,7 +3,7 @@ import {DataManager} from '../misc/data_manager';
 import {trackingService} from './tracking_service';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../misc/analytics_utils';
-import {EventStopWatch} from '../misc/event_stopwatch';
+import {Stopwatch, StopwatchFactory} from '../misc/event_stopwatch';
 import {PersistentQueue} from '../misc/persistent_queue';
 import {EventColumnIds, SystemEvents} from '../domain/system_events';
 import {TrackingSessionManager} from "../misc/tracking_session_manager";
@@ -13,12 +13,12 @@ import {Mutex} from 'async-mutex';
 export class AnalyticsCore {
   private readonly mutex = new Mutex();
 
-  private trackingApiKey: string;
+  private readonly trackingApiKey: string;
   private globalProperties: Properties;
 
   private lastScreenName?: string;
 
-  private readonly stopWatch: EventStopWatch = new EventStopWatch();
+  private readonly stopwatch: Stopwatch = StopwatchFactory.createStopwatch();
   private readonly worker: PersistentQueue = new PersistentQueue();
 
 
@@ -30,9 +30,7 @@ export class AnalyticsCore {
     };
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
-    this.getTrackingId().then(() => {
-      this.touchSession();
-    });
+    this.getTrackingId().then(() => this.touchSession());
     this.setupAndStartWorker();
   }
 
@@ -41,7 +39,6 @@ export class AnalyticsCore {
     document.addEventListener('readystatechange', event => {
       if (document.readyState === 'complete') {
         window.addEventListener('unload', (event) => {
-          this.touchSession();
           this.worker.stop();
         });
       }
@@ -50,7 +47,7 @@ export class AnalyticsCore {
 
   reset() {
     this.lastScreenName = '';
-    this.stopWatch.clear();
+    this.stopwatch.clear();
     DataManager.reset();
   }
 
@@ -86,35 +83,54 @@ export class AnalyticsCore {
     this.lastScreenName = name || '';
   }
 
-  enterScreen(name: string, userProps: Properties = {}): Promise<any> {
+  enterScreen(name: string, userProps: Properties = {}): void {
     this.lastScreenName = name || '';
     this.time(`di_pageview_${name}`);
     const properties = {...userProps};
     properties[EventColumnIds.SCREEN_NAME] = name;
-    return this.track(SystemEvents.SCREEN_ENTER, properties);
+    this.track(SystemEvents.SCREEN_ENTER, properties);
   }
 
-  exitScreen(name: string, userProps: Properties = {}): Promise<any> {
-    let [startTime, duration] = this.stopWatch.stopAndPop(`di_pageview_${name}`);
+  exitScreen(name: string, userProps: Properties = {}): void {
+    const elapseDuration = this.stopwatch.stop(`di_pageview_${name}`);
     const properties = {...userProps};
     properties[EventColumnIds.SCREEN_NAME] = name;
-    properties[EventColumnIds.START_TIME] = startTime || 0;
-    properties[EventColumnIds.DURATION] = duration || 0;
-    return this.track(SystemEvents.PAGE_VIEW, properties);
+    properties[EventColumnIds.START_TIME] = elapseDuration.startTime || 0;
+    properties[EventColumnIds.DURATION] = elapseDuration.duration || 0;
+    this.track(SystemEvents.PAGE_VIEW, properties);
   }
 
+
+  async touchSession(): Promise<any> {
+    const releaser = await this.mutex.acquire();
+    try {
+      const sessionInfo = TrackingSessionManager.getSession();
+      if (sessionInfo.isExpired) {
+        if (sessionInfo.sessionId) {
+          this.endSession(sessionInfo);
+        }
+        TrackingSessionManager.deleteSession();
+        this.createSession();
+      } else {
+        TrackingSessionManager.updateSession(sessionInfo.sessionId);
+      }
+    } finally {
+      releaser();
+    }
+  }
+
+  private createSession(): void {
+    const properties = this.buildCreateSessionTrackingData();
+    return this.enqueueEventData(SystemEvents.SESSION_CREATED, properties);
+  }
+
+  private endSession(sessionInfo: TrackingSessionInfo): void {
+    let properties = this.buildEndSessionTrackingData(sessionInfo);
+    return this.track(SystemEvents.SESSION_END, properties);
+  }
 
   time(event: string) {
-    this.stopWatch.add(event);
-  }
-
-  track(event: string, properties: Properties): Promise<any> {
-    const eventProperties = this.buildTrackingProperties(event, properties);
-    return this.trackEvent(event, eventProperties);
-  }
-
-  private trackEvent(event: string, properties: Properties): Promise<any> {
-    return this.worker.enqueueEvent(this.trackingApiKey, event, properties);
+    this.stopwatch.start(event);
   }
 
   //TODO: Send an event to server to resolve old events with this user id
@@ -131,46 +147,50 @@ export class AnalyticsCore {
     return this.worker.enqueueEngage(this.trackingApiKey, userId, properties);
   }
 
-
-  async touchSession(): Promise<any> {
-    const releaser = await this.mutex.acquire();
-    try {
-      const sessionInfo = TrackingSessionManager.getSession();
-      if (sessionInfo.isExpired) {
-        if (sessionInfo.sessionId) {
-          await this.endSession(sessionInfo);
-        }
-        await TrackingSessionManager.deleteSession();
-        await this.createSession();
-      } else {
-        TrackingSessionManager.updateSession(sessionInfo.sessionId);
-      }
-    } finally {
-      releaser();
-    }
+  track(event: string, properties: Properties): void {
+    const eventProperties = this.buildTrackingData(event, properties);
+    this.enqueueEventData(event, eventProperties);
   }
 
-  private createSession(): Promise<any> {
-    const properties = this.buildTrackingProperties(SystemEvents.SESSION_CREATED, {})
+  private enqueueEventData(event: string, properties: Properties): void {
+
+    this.worker.enqueueEvent(this.trackingApiKey, event, properties);
+  }
+
+  /**
+   *
+   * @private
+   */
+  private buildCreateSessionTrackingData(): Properties {
+    const properties = this.buildTrackingData(SystemEvents.SESSION_CREATED, {})
     const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
     properties[EventColumnIds.SESSION_ID] = sessionId;
     properties[EventColumnIds.START_TIME] = createdAt;
     properties[EventColumnIds.TIME] = createdAt;
-    return this.trackEvent(SystemEvents.SESSION_CREATED, properties);
+    return properties;
   }
 
-
-  private endSession(sessionInfo: TrackingSessionInfo): Promise<any> {
-    let properties = sessionInfo.properties || {};
+  /**
+   * Build session tracking data from given session info
+   * @param sessionInfo
+   * @private
+   */
+  private buildEndSessionTrackingData(sessionInfo: TrackingSessionInfo): Properties {
+    const properties = sessionInfo.properties || {};
     properties[EventColumnIds.SESSION_ID] = sessionInfo.sessionId;
     properties[EventColumnIds.START_TIME] = sessionInfo.createdAt;
     properties[EventColumnIds.DURATION] = (Date.now() - sessionInfo.createdAt);
     properties[EventColumnIds.TIME] = Date.now();
-    return this.track(SystemEvents.SESSION_END, properties);
+    return properties;
   }
 
-
-  private buildTrackingProperties(event: string, properties: Properties): Properties {
+  /**
+   * Build a full tracking tracking data from the given data.
+   * @param event
+   * @param properties
+   * @private
+   */
+  private buildTrackingData(event: string, properties: Properties): Properties {
     const trackingId = DataManager.getTrackingId();
     const sessionInfo = TrackingSessionManager.getSession();
     this.enrichScreenName(properties);
@@ -197,23 +217,19 @@ export class AnalyticsCore {
   }
 
   private enrichScreenName(properties: Properties) {
-
     if (!properties[EventColumnIds.SCREEN_NAME]) {
       properties[EventColumnIds.SCREEN_NAME] = this.lastScreenName || window.document.location.pathname;
     }
   }
 
-
   private enrichDuration(event: string, properties: Properties) {
-    let [startTime, duration] = this.stopWatch.stopAndPop(event);
+    const elapseDuration = this.stopwatch.stop(event);
     if (!properties[EventColumnIds.START_TIME]) {
-      properties[EventColumnIds.START_TIME] = startTime || 0;
+      properties[EventColumnIds.START_TIME] = elapseDuration.startTime || 0;
     }
     if (!properties[EventColumnIds.DURATION]) {
-      properties[EventColumnIds.DURATION] = duration || 0;
+      properties[EventColumnIds.DURATION] = elapseDuration.duration || 0;
     }
-
   }
-
 
 }

@@ -36,19 +36,22 @@ export class DiAnalytics {
 
   }
 
-  static async enterScreenStart(name: string): Promise<any> {
-    await this.getInstance().touchSession();
-    this.getInstance().enterScreenStart(name);
+  static enterScreenStart(name: string): Promise<any> {
+    return this.getInstance().touchSession().then(_ => {
+      this.getInstance().enterScreenStart(name);
+    });
   }
 
-  static async enterScreen(name: string, properties: Properties = {}): Promise<any> {
-    await this.getInstance().touchSession();
-    await this.getInstance().enterScreen(name, properties);
+  static enterScreen(name: string, properties: Properties = {}): Promise<any> {
+    return this.getInstance().touchSession().then(_ => {
+      this.getInstance().enterScreen(name, properties);
+    });
   }
 
   static async exitScreen(name: string, properties: Properties = {}): Promise<any> {
-    await this.getInstance().touchSession();
-    await this.getInstance().exitScreen(name, properties);
+    return this.getInstance().touchSession().then(_ => {
+      this.getInstance().exitScreen(name, properties)
+    });
   }
 
   static register(properties: Properties) {
