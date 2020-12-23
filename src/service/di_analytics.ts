@@ -1,11 +1,11 @@
 import {Properties} from '../domain';
 import {DataManager} from '../misc/data_manager';
-import {AnalyticsCore} from './analytics_core';
+import {AnalyticsCore, BaseAnalyticsCore, NoopAnalyticsCore} from './analytics_core';
 
 export class DiAnalytics {
-  private static instance: AnalyticsCore;
+  private static instance: BaseAnalyticsCore;
 
-  private static getInstance(): AnalyticsCore {
+  private static getInstance(): BaseAnalyticsCore {
     if (!this.instance) {
       const trackingApiKey = DataManager.getTrackingApiKey();
       if (trackingApiKey) {
@@ -17,13 +17,21 @@ export class DiAnalytics {
     return this.instance;
   }
 
-  //TODO: Clear additional data & queue... etc
-  static init(trackingApiKey: string, properties?: Properties) {
-    this.instance = this.createDiAnalytics(trackingApiKey, properties);
-
+  /**
+   * TODO: Clear additional data & queue... etc
+   * @param trackingApiKey
+   * @param properties
+   * @param isNoop
+   */
+  static init(trackingApiKey: string, properties?: Properties, isNoop?: boolean) {
+    if (isNoop ?? false) {
+      this.instance = new NoopAnalyticsCore();
+    } else {
+      this.instance = this.createAnalytics(trackingApiKey, properties);
+    }
   }
 
-  private static createDiAnalytics(trackingApiKey: string, properties?: Properties): AnalyticsCore {
+  private static createAnalytics(trackingApiKey: string, properties?: Properties): BaseAnalyticsCore {
     if (trackingApiKey && trackingApiKey.length !== 0) {
       DataManager.setTrackingApiKey(trackingApiKey);
       return new AnalyticsCore(trackingApiKey, properties || {});
@@ -32,8 +40,8 @@ export class DiAnalytics {
     }
   }
 
-  static autoTrackDom(cssSelector: string) {
 
+  static autoTrackDom(cssSelector: string) {
   }
 
   static enterScreenStart(name: string): Promise<any> {

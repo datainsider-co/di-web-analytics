@@ -10,7 +10,77 @@ import {TrackingSessionManager} from "../misc/tracking_session_manager";
 import {TrackingSessionInfo} from "../domain/tracking_session_info";
 import {Mutex} from 'async-mutex';
 
-export class AnalyticsCore {
+
+export abstract class BaseAnalyticsCore {
+
+  abstract reset(): void
+
+  abstract async getTrackingId(): Promise<string>
+
+  abstract register(properties: Properties): void
+
+  abstract enterScreenStart(name: string): void
+
+  abstract enterScreen(name: string, userProps?: Properties): void
+
+  abstract exitScreen(name: string, userProps?: Properties): void
+
+  abstract async touchSession(): Promise<any>
+
+  abstract time(event: string): void
+
+  abstract identify(userId: string): void
+
+  abstract setUserProfile(userId: string, properties: Properties): Promise<any>
+
+  abstract track(event: string, properties: Properties): void
+}
+
+export class NoopAnalyticsCore extends BaseAnalyticsCore {
+
+  constructor() {
+    super();
+  }
+
+  enterScreen(name: string, userProps?: Properties): void {
+  }
+
+  enterScreenStart(name: string): void {
+  }
+
+  exitScreen(name: string, userProps?: Properties): void {
+  }
+
+  async getTrackingId(): Promise<string> {
+    return Promise.resolve("");
+  }
+
+  identify(userId: string): void {
+  }
+
+  register(properties: Properties): void {
+  }
+
+  reset(): void {
+  }
+
+  setUserProfile(userId: string, properties: Properties): Promise<any> {
+    return Promise.resolve(undefined);
+  }
+
+  time(event: string): void {
+  }
+
+  async touchSession(): Promise<any> {
+    return Promise.resolve(undefined);
+  }
+
+  track(event: string, properties: Properties): void {
+  }
+
+}
+
+export class AnalyticsCore extends BaseAnalyticsCore {
   private readonly mutex = new Mutex();
 
   private readonly trackingApiKey: string;
@@ -23,6 +93,7 @@ export class AnalyticsCore {
 
 
   constructor(trackingApiKey: string, properties: Properties) {
+    super()
     this.trackingApiKey = trackingApiKey;
     let props = {
       ...DataManager.getGlobalProperties(),
