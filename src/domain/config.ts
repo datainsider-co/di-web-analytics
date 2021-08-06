@@ -2,7 +2,7 @@
 const pkg = require('../../package.json')
 
 const LibConfig = Object.freeze({
-  baseUrl: 'http://dev.datainsider.co',
+  baseUrl: 'http://insight.datainsider.co/',
   timeout: 45000,
   baseHeaders: {
     'Content-Type': 'application/json'
