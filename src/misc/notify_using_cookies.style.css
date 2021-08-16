@@ -1,0 +1,59 @@
+.di-notify {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: #2e3e52;
+  color: #fff;
+  padding: 20px 40px;
+  text-align: center;
+  /* display: none; */
+  box-shadow: 0px -1px 6px 0px rgb(46 62 82 / 71%);
+  opacity: 0;
+  transition: opacity linear 300ms;
+}
+
+.di-notify.show {
+  opacity: 1;
+  display: block;
+}
+
+.di-notify.hide {
+  opacity: 0;
+}
+
+.di-notify .di-notify-message {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  max-width: 900px;
+  display: inline-block;
+}
+
+.di-notify .di-notify-message a {
+  color: #4b81c5;
+}
+
+.di-notify .di-notify-action {
+  margin-top: 20px;
+}
+
+.di-notify .di-notify-action button {
+  padding: 10px 20px;
+  background: #fff;
+  opacity: 0.85;
+  border: 1px solid #fff;
+  margin: 0 6px;
+  border-radius: 4px;
+  color: #2e3e52;
+  cursor: pointer;
+}
+
+
+.di-notify .di-notify-action button:hover {
+  opacity: 1;
+}
+
+.di-notify .di-notify-action button.di-btn-accept {
+  /* background-color: #4b81c5; */
+}

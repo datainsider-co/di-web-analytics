@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "esnext",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "types": [
+      "mocha"
+    ],
+    "lib": [
+      "es2015",
+      "esnext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "tests",
+    "public"
+  ]
+}
