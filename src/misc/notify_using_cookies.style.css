@@ -7,7 +7,7 @@
   color: #fff;
   padding: 20px 40px;
   text-align: center;
-  /* display: none; */
+  display: none;
   box-shadow: 0px -1px 6px 0px rgb(46 62 82 / 71%);
   opacity: 0;
   transition: opacity linear 300ms;

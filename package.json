@@ -10,8 +10,7 @@
   "scripts": {
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
     "build": "rm -rf dist && tsc",
-    "dev": "webpack --config webpack.config.js --watch",
-    "dev2": "rollup --config rollup.config.ts --watch"
+    "dev": "webpack --config webpack.config.js --watch"
   },
   "keywords": [
     "di-web-analytics",
@@ -21,10 +20,6 @@
   "author": "Data insider",
   "license": "MIT",
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^20.0.0",
-    "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^13.0.4",
-    "@rollup/plugin-typescript": "^8.2.5",
     "@types/chai": "^4.2.11",
     "@types/lodash": "^4.14.157",
     "@types/mocha": "^5.2.4",
@@ -40,8 +35,6 @@
     "postcss": "^8.3.6",
     "postcss-loader": "^6.1.1",
     "prettier": "^1.19.1",
-    "rollup": "^2.56.2",
-    "rollup-plugin-polyfill-node": "^0.7.0",
     "style-loader": "^3.2.1",
     "tcs": "^10.0.0",
     "ts-loader": "^9.2.5",
