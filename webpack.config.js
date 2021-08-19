@@ -22,7 +22,7 @@ module.exports = {
   },
   output: {
     library: {
-      name: 'DiTracking',
+      name: 'DiAnalytics',
       type: 'umd',
       export: 'default'
     },

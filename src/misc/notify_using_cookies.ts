@@ -3,17 +3,24 @@ import './notify_using_cookies.style.css';
 const DEFAULT_MESSAGE = 'We use cookies to make website a better place. Cookies help to provide a more personalized experience and relavant advertising for you, and web analytics for us. To learn more about the different cookies we\'re using, check out our <a href="#">Cookie Policy</a> (baked goods not included).'
 const DEFAULT_ALLOW_LABEL = 'Allow cookies'
 const DEFAULT_DECLINE_LABEL = 'Decline'
+const USING_COOKIE_STAGE_KEY = '$UC$'
+
+enum UsingCookiesStage {
+  Accept = 'Accept',
+  Decline = 'Decline'
+}
+
 
 export default class NotifyUsingCookies { 
+  private static stage: UsingCookiesStage = NotifyUsingCookies.getStoredUsingCookieStage()
   private static banner: HTMLDivElement | null = null
 
   private constructor(){}
 
-  static initStyle(): void {
-    // const style:HTMLStyleElement = document.createElement('style')
-    // style.type = 'text/css'
-    // document.head.appendChild(style)
-    // style.appendChild(document.createTextNode(cssStyle));
+  static getStoredUsingCookieStage(): UsingCookiesStage {
+    const storedValue = localStorage.getItem(USING_COOKIE_STAGE_KEY)
+    if (storedValue === UsingCookiesStage.Accept) return UsingCookiesStage.Accept
+    return UsingCookiesStage.Decline
   }
 
   static allowCookies(){
@@ -33,7 +40,6 @@ export default class NotifyUsingCookies {
       NotifyUsingCookies.banner.remove()
     }
     const banner: HTMLDivElement = document.createElement('div')
-    NotifyUsingCookies.initStyle()
     banner.classList.add('di-notify')
     const messageEl = document.createElement('div')
     const actionEl = document.createElement('div')
