@@ -28,7 +28,7 @@ export class PersistentQueue {
     this.engageChannel.stop();
   }
 
-  async enqueueEvent(trackingApiKey: string, event: string, properties: Properties) {
+  async enqueueEvent(url: string, trackingApiKey: string, event: string, properties: Properties) {
     const releaser = await this.mutex.acquire();
     try {
       return await this.eventChannel.add({
@@ -36,21 +36,21 @@ export class PersistentQueue {
         label: event,
         createdAt: Date.now(),
         handler: 'SubmitEventWorker',
-        args: {trackingApiKey: trackingApiKey, event: event, properties: properties},
+        args: {url: url, trackingApiKey: trackingApiKey, event: event, properties: properties},
       });
     } finally {
       releaser();
     }
   }
 
-  async enqueueEngage(trackingApiKey: string, userId: string, properties: Properties) {
+  async enqueueEngage(url: string, trackingApiKey: string, userId: string, properties: Properties) {
     const releaser = await this.mutex.acquire();
     try {
       return await this.engageChannel.add({
         priority: 1,
         createdAt: Date.now(),
         handler: 'SubmitEngageWorker',
-        args: {trackingApiKey: trackingApiKey, userId: userId, properties: properties},
+        args: {url: url, trackingApiKey: trackingApiKey, userId: userId, properties: properties},
       });
     } finally {
       releaser();

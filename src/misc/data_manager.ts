@@ -3,6 +3,7 @@ import MiniJson from 'mini-json';
 
 export class DataManager {
   static readonly TRACKING_API_KEY = 'di_tracking_api_key';
+  static readonly TRACKING_URL = 'di_tracking_url';
   static readonly TRACKING_ID = 'di_tracking_id';
   static readonly USER_ID = 'di_tracking_user_id';
   static readonly GLOBAL_PROPERTIES = 'di_tracking_global_properties';
@@ -10,6 +11,18 @@ export class DataManager {
   static reset() {
     this.deleteUserId();
     this.deleteGlobalProperties();
+  }
+
+  static setTrackingUrl(url: string): void {
+    localStorage.setItem(DataManager.TRACKING_URL, url);
+  }
+
+  static getTrackingUrl(): string | undefined {
+    return localStorage.getItem(DataManager.TRACKING_URL) || void 0;
+  }
+
+  static deleteTrackingUrl(): void {
+    localStorage.removeItem(DataManager.TRACKING_URL);
   }
 
   static setTrackingApiKey(apiKey: string): void {
