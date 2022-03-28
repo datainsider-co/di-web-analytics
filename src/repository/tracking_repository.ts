@@ -4,11 +4,11 @@ import { BaseClient } from '../service';
 
 
 export abstract class TrackingRepository {
-  abstract genTrackId(trackingApiKey: string): Promise<string>;
+  abstract genTrackId(url: string, trackingApiKey: string): Promise<string>;
 
-  abstract track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
+  abstract track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
 
-  abstract engage(trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
+  abstract engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
 }
 
 
@@ -18,8 +18,8 @@ export class DITrackingRepository extends TrackingRepository {
     super();
   }
 
-  engage(trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined> {
-    return this.client.post('/api/tracking/engage', {
+  engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined> {
+    return this.client.post(`${url}/api/tracking/engage`, {
       trackingApiKey: trackingApiKey,
       userId: userId,
       properties: properties
@@ -28,12 +28,12 @@ export class DITrackingRepository extends TrackingRepository {
     });
   }
 
-  genTrackId(trackingApiKey: string): Promise<string> {
-    return this.client.post('/api/tracking/gen_track_id', { trackingApiKey: trackingApiKey });
+  genTrackId(url: string, trackingApiKey: string): Promise<string> {
+    return this.client.post(`${url}/api/tracking/gen_track_id`, { trackingApiKey: trackingApiKey });
   }
 
-  track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
-    return this.client.post('/api/tracking/track', {
+  track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
+    return this.client.post(`${url}/api/tracking/track`, {
       trackingApiKey: trackingApiKey,
       event: event,
       properties: properties

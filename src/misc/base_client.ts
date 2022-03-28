@@ -68,7 +68,6 @@ class HttpClient extends BaseClient {
 }
 
 const _clientConfig: AxiosRequestConfig = {
-  baseURL: LibConfig.baseUrl,
   timeout: LibConfig.timeout,
   headers: LibConfig.baseHeaders
 };
