@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  mode: process.env.NODE_ENV ?? 'development',
+  mode: process.env.NODE_ENV,
   entry: './src/index.ts',
   module: {
     rules: [
@@ -27,6 +27,6 @@ module.exports = {
       export: 'default'
     },
     filename: 'sdk.index.js',
-    path: path.resolve(__dirname, 'public'),
+    path: path.resolve(__dirname, 'dist'),
   }
 };
