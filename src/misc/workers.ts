@@ -4,9 +4,9 @@ import {trackingService} from '../service/tracking_service';
 import {DataManager} from './data_manager';
 import {EventColumnIds} from '../domain/system_events';
 
-async function getTrackingId(trackingApiKey: string): Promise<string> {
+async function getTrackingId(url: string, trackingApiKey: string): Promise<string> {
   const generateTrackingId = async (): Promise<string> => {
-    return trackingService.genTrackId(trackingApiKey).then(trackingId => {
+    return trackingService.genTrackId(url, trackingApiKey).then(trackingId => {
       if (!trackingId) {
         throw Error("Can't generate tracking id");
       }
@@ -26,12 +26,13 @@ export class SubmitEventWorker {
   retry = 1;
 
   async handle(message: any): Promise<any> {
+    let url = message.url;
     let trackingApiKey = message.trackingApiKey;
     let event = message.event;
     let properties = message.properties as Properties;
-    return getTrackingId(trackingApiKey).then(trackingId => {
+    return getTrackingId(url, trackingApiKey).then(trackingId => {
       properties[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
-      return trackingService.track(trackingApiKey, event, properties);
+      return trackingService.track(url, trackingApiKey, event, properties);
     }).then(newTrackingId => {
       if (newTrackingId) {
         DataManager.setTrackingId(newTrackingId);
@@ -49,13 +50,14 @@ export class SubmitEngageWorker {
   retry = 1;
 
   async handle(message: any): Promise<any> {
+    let url = message.url;
     let trackingApiKey = message.trackingApiKey;
     let userId = message.userId;
     let properties = message.properties as Properties;
     console.info(`SubmitEngageWorker::handle: ${userId} - ${properties}`);
-    return getTrackingId(trackingApiKey).then(trackingId => {
+    return getTrackingId(url, trackingApiKey).then(trackingId => {
       properties[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
-      return trackingService.engage(trackingApiKey, userId, properties);
+      return trackingService.engage(url, trackingApiKey, userId, properties);
     }).then(newTrackingId => {
       if (newTrackingId) {
         DataManager.setTrackingId(newTrackingId);

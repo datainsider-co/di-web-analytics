@@ -1,10 +1,12 @@
 {
-  "name": "@datainsider/di-web-analytics",
-  "version": "0.5.6",
+  "name": "di-web-analytics",
+  "version": "0.6.0",
   "description": "Data insider web analytics",
-  "publishConfig": {
-    "@datainsider:registry": "https://gitlab.com/api/v4/projects/21342430/packages/npm/"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/datainsider-co/di-web-analytics"
   },
+  "homepage": "https://github.com/datainsider-co/di-web-analytics/blob/main/README.md",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

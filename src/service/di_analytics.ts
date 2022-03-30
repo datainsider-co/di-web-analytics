@@ -1,6 +1,6 @@
-import {Properties} from '../domain';
-import {DataManager} from '../misc/data_manager';
-import {AnalyticsCore, BaseAnalyticsCore, NoopAnalyticsCore} from './analytics_core';
+import { Properties } from "../domain";
+import { DataManager } from "../misc/data_manager";
+import { AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore } from "./analytics_core";
 import NotifyUsingCookies from '../misc/notify_using_cookies';
 
 export class DiAnalytics {
@@ -8,11 +8,12 @@ export class DiAnalytics {
 
   private static getInstance(): BaseAnalyticsCore {
     if (!this.instance) {
+      const url = DataManager.getTrackingUrl();
       const trackingApiKey = DataManager.getTrackingApiKey();
-      if (trackingApiKey) {
-        this.init(trackingApiKey);
+      if (url && trackingApiKey) {
+        this.init(url, trackingApiKey);
       } else {
-        throw new Error('DiAnalytics: You have to call DiAnalytics.getInstance first.');
+        throw new Error("DiAnalytics: You have to call DiAnalytics.getInstance first.");
       }
     }
     return this.instance;
@@ -20,24 +21,26 @@ export class DiAnalytics {
 
   /**
    * TODO: Clear additional data & queue... etc
+   * @param url
    * @param trackingApiKey
    * @param properties
-   * @param isNoop
+   * @param disable
    */
-  static init(trackingApiKey: string, properties?: Properties, isNoop?: boolean) {
-    if (isNoop ?? false) {
-      this.instance = new NoopAnalyticsCore();
+  static init(url: string, trackingApiKey: string, properties?: Properties, disable?: boolean) {
+    if (disable ?? false) {
+      this.instance = new DisableAnalyticsCore();
     } else {
-      this.instance = this.createAnalytics(trackingApiKey, properties);
+      this.instance = this.createAnalytics(url, trackingApiKey, properties);
     }
   }
 
-  private static createAnalytics(trackingApiKey: string, properties?: Properties): BaseAnalyticsCore {
-    if (trackingApiKey && trackingApiKey.length !== 0) {
+  private static createAnalytics(url: string, trackingApiKey: string, properties?: Properties): BaseAnalyticsCore {
+    if (trackingApiKey && trackingApiKey.length !== 0 && url && url.length !== 0) {
+      DataManager.setTrackingUrl(url);
       DataManager.setTrackingApiKey(trackingApiKey);
-      return new AnalyticsCore(trackingApiKey, properties || {});
+      return new AnalyticsCore(url, trackingApiKey, properties || {});
     } else {
-      throw new Error('DiAnalytics: trackingApiKey must not empty string!');
+      throw new Error("DiAnalytics: trackingApiKey must not empty string!");
     }
   }
 
@@ -59,7 +62,7 @@ export class DiAnalytics {
 
   static async exitScreen(name: string, properties: Properties = {}): Promise<any> {
     return this.getInstance().touchSession().then(_ => {
-      this.getInstance().exitScreen(name, properties)
+      this.getInstance().exitScreen(name, properties);
     });
   }
 

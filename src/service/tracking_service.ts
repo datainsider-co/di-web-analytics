@@ -4,11 +4,11 @@ import {baseClient} from '../misc/base_client';
 import {Properties} from '../domain';
 
 export abstract class TrackingService {
-  abstract genTrackId(trackingApiKey: string): Promise<string>;
+  abstract genTrackId(url: string, trackingApiKey: string): Promise<string>;
 
-  abstract track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
+  abstract track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
 
-  abstract engage(trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
+  abstract engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
 }
 
 
@@ -20,16 +20,16 @@ export class DITrackingService extends TrackingService {
     this.trackingRepository = repository;
   }
 
-  genTrackId(trackingApiKey: string): Promise<string> {
-    return this.trackingRepository.genTrackId(trackingApiKey);
+  genTrackId(url: string, trackingApiKey: string): Promise<string> {
+    return this.trackingRepository.genTrackId(url, trackingApiKey);
   }
 
-  track(trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
-    return this.trackingRepository.track(trackingApiKey, event, properties);
+  track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
+    return this.trackingRepository.track(url, trackingApiKey, event, properties);
   }
 
-  engage(trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined> {
-    return this.trackingRepository.engage(trackingApiKey, userId, properties);
+  engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined> {
+    return this.trackingRepository.engage(url, trackingApiKey, userId, properties);
   }
 }
 
