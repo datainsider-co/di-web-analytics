@@ -1,6 +1,7 @@
 import { Properties } from "../domain";
 import { DataManager } from "../misc/data_manager";
 import { AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore } from "./analytics_core";
+import NotifyUsingCookies from '../misc/notify_using_cookies';
 
 export class DiAnalytics {
   private static instance: BaseAnalyticsCore;
@@ -92,6 +93,10 @@ export class DiAnalytics {
   static async setUserProfile(userId: string, properties: Properties = {}): Promise<any> {
     await this.getInstance().touchSession();
     return this.getInstance().setUserProfile(userId, properties);
+  }
+
+  static notifyUsingCookies(title: string, message: string, allowLabel: string, declineLabel: string): void {
+    NotifyUsingCookies.showBanner()
   }
 
   static reset(): DiAnalytics {

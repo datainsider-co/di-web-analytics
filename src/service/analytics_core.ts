@@ -15,7 +15,7 @@ export abstract class BaseAnalyticsCore {
 
   abstract reset(): void
 
-  abstract async getTrackingId(): Promise<string>
+  abstract getTrackingId(): Promise<string>
 
   abstract register(properties: Properties): void
 
@@ -25,7 +25,7 @@ export abstract class BaseAnalyticsCore {
 
   abstract exitScreen(name: string, userProps?: Properties): void
 
-  abstract async touchSession(): Promise<any>
+  abstract touchSession(): Promise<any>
 
   abstract time(event: string): void
 
