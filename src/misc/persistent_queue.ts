@@ -18,10 +18,10 @@ export class PersistentQueue {
   private currentScheduleId: number | null = null;
 
   /**
-   * @param queueSize max size để chờ persist xuống đĩa
+   * @param queueSize max size để chờ persist xuống storage
    * @param timePersistent thời gian max để chờ persist, tính theo millis
    */
-  constructor(queueSize = 50, timePersistent = 5000) {
+  constructor(queueSize = 100, timePersistent = 60000) {
     this.maxSize = queueSize;
     this.timePersistent = timePersistent;
 
@@ -32,8 +32,9 @@ export class PersistentQueue {
     this.eventChannel.start();
   }
 
-  stop() {
+  async stop() {
     this.eventChannel.stop();
+    await this.persist()
   }
 
   async add(eventName: string, properties?: Properties) {
@@ -44,7 +45,7 @@ export class PersistentQueue {
         properties: properties
       });
 
-      if (this.maxSize >= this.tempEvents.length) {
+      if (this.tempEvents.length > this.maxSize) {
         await this.persist()
       } else {
         this.schedulePersist();
@@ -57,7 +58,7 @@ export class PersistentQueue {
 
   private async persist() {
     try {
-      if (this.tempEvents.length >= 0) {
+      if (this.tempEvents.length > 0) {
         await this.eventChannel.add({
           priority: 1,
           label: 'persist-event',

@@ -107,11 +107,9 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   private setupWorker() {
 
     document.addEventListener('readystatechange', event => {
-      if (document.readyState === 'complete') {
-        window.addEventListener('unload', (event) => {
-          this.worker.stop();
-        });
-      }
+      window.addEventListener('beforeunload', async (event) => {
+        await this.worker.stop();
+      });
     });
   }
 

@@ -1,7 +1,7 @@
 //@ts-ignore
 const pkg = require('../../package.json');
 
-const LibConfig = Object.freeze({
+const LibConfig = Object({
   timeout: 45000,
   baseHeaders: {
     'Content-Type': 'application/json'

@@ -39,13 +39,12 @@ export class TrackingRepositoryImpl extends TrackingRepository {
     return new TrackingResponse(response.success);
   }
 
-  private static toJson(events: Event[]): string {
-    const obj = events.map(event => {
+  private static toJson(events: Event[]): any[] {
+    return events.map(event => {
       return {
         event_name: event.eventName,
         properties: event.properties
       };
     });
-    return JSON.stringify(obj);
   }
 }
