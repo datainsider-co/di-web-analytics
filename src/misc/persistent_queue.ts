@@ -37,11 +37,11 @@ export class PersistentQueue {
     await this.persist()
   }
 
-  async add(eventName: string, properties?: Properties) {
+  async add(event: string, properties: Properties) {
     const releaser = await this.mutex.acquire();
     try {
       this.tempEvents.push({
-        eventName: eventName,
+        name: event,
         properties: properties
       });
 

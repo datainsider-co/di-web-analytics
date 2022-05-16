@@ -22,28 +22,28 @@ class HttpClient extends BaseClient {
 
   delete(path: string, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-      .delete<string>(path, { ...config })
+      .delete<string>(path, { ...config, baseURL: LibConfig.host })
       .then(HttpClient.getData)
       .catch(ex => HttpClient.handleError(path, ex));
   }
 
   get(path: string, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-      .get<string>(path, { ...config })
+      .get<string>(path, { ...config, baseURL: LibConfig.host })
       .then(HttpClient.getData)
       .catch(ex => HttpClient.handleError(path, ex));
   }
 
   post(path: string, body?: any, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-      .post<string>(path, body, { ...config })
+      .post<string>(path, body, { ...config, baseURL: LibConfig.host })
       .then(HttpClient.getData)
       .catch((ex) => HttpClient.handleError(path, ex));
   }
 
   put(path: string, body?: any, config: { params?: any, headers?: any } = {}): Promise<string> {
     return this.client
-      .put<string>(path, body, { ...config })
+      .put<string>(path, body, { ...config, baseURL: LibConfig.host })
       .then(HttpClient.getData)
       .catch(ex => HttpClient.handleError(path, ex));
   }
@@ -71,14 +71,14 @@ export default BaseClient;
 
 export const BASE_CLIENT: BaseClient = new HttpClient(
   Axios.create({
-    baseURL: LibConfig.host,
     timeout: LibConfig.timeout,
     headers: LibConfig.baseHeaders,
     transformRequest: (data: AxiosTransformer) => {
       return JSON.stringify({
-        tracking_api_key: LibConfig.trackingApiKey,
+        api_key: LibConfig.apiKey,
         ...data
       });
-    }
+    },
+
   })
 );

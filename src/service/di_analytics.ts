@@ -32,7 +32,7 @@ export class DiAnalytics {
       this.instance = new DisableAnalyticsCore();
     } else {
       LibConfig
-        .setValue('trackingApiKey', trackingApiKey)
+        .setValue('apiKey', trackingApiKey)
         .setValue('host', host);
       DataManager.setTrackingHost(host);
       DataManager.setTrackingApiKey(trackingApiKey);

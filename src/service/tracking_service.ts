@@ -3,7 +3,7 @@ import {Event, Properties} from '../domain';
 import {BASE_CLIENT} from '../misc/base_client';
 
 export abstract class TrackingService {
-  abstract track(event: string, properties: Properties): Promise<boolean>;
+  abstract track(name: string, properties: Properties): Promise<boolean>;
 
   abstract multiTrack(events: Event[]): Promise<boolean>;
 }
@@ -21,8 +21,8 @@ export class TrackingServiceImpl extends TrackingService {
     return this.trackingRepository.multiTrack(events);
   }
 
-  track(event: string, properties: Properties): Promise<boolean> {
-    return this.trackingRepository.track(event, properties);
+  track(name: string, properties: Properties): Promise<boolean> {
+    return this.trackingRepository.track(name, properties);
   }
 }
 

@@ -31,18 +31,17 @@ export class TrackingRepositoryImpl extends TrackingRepository {
   }
 
   track(event: string, properties: Properties): Promise<boolean> {
-    return this.multiTrack([{eventName: event, properties: properties}]);
+    return this.multiTrack([{name: event, properties: properties}]);
   }
 
-  private static getResult(data: string): TrackingResponse {
-    const response = JSON.parse(data);
-    return new TrackingResponse(response.success);
+  private static getResult(data: any): TrackingResponse {
+    return new TrackingResponse(data.success);
   }
 
   private static toJson(events: Event[]): any[] {
     return events.map(event => {
       return {
-        event_name: event.eventName,
+        name: event.name,
         properties: event.properties
       };
     });
