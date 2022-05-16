@@ -12,7 +12,7 @@ const LibConfig = Object({
   trackingApiKey: '',
   host: '',
   setValue: (key: string, value: any) => {
-    return Object.assign(LibConfig, {key: value});
+    return Object.assign(LibConfig, {[key]: value});
   }
 });
 
