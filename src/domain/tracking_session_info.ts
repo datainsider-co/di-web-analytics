@@ -1,5 +1,4 @@
-import {Properties} from "@/domain/properties";
-import {TrackingSessionManager} from "@/misc/tracking_session_manager";
+import {Properties} from '../domain/properties';
 
 export interface TrackingSessionInfo {
   sessionId: string;

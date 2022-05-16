@@ -1,7 +1,7 @@
 import Queue from 'storage-based-queue';
 import {Message, SubmitEventWorker} from './workers';
 import {Mutex} from 'async-mutex';
-import {Event, Properties} from '@/domain';
+import {Event, Properties} from '../domain';
 
 Queue.workers({SubmitEventWorker});
 
