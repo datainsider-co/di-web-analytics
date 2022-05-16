@@ -15,7 +15,7 @@ export class EventColumnIds {
   static readonly LIB_PLATFORM = "di_lib_platform"
   static readonly LIB_VERSION = "di_lib_version"
   static readonly TRACKING_ID = "di_tracking_id"
-  static readonly SESSION_ID = "di_session_id"
+  static readonly SESSION_ID = "di_customer_id"
   static readonly USER_ID = "di_user_id"
   static readonly SCREEN_NAME = "di_screen_name"
   static readonly CLIENT_IP = "di_client_ip"
@@ -40,6 +40,6 @@ export class EventColumnIds {
   static readonly PLATFORM_VENDOR = "di_platform_vendor"
   static readonly START_TIME = "di_start_time"
   static readonly DURATION = "di_duration"
-  static readonly TIME = "di_time"
+  static readonly TIME = "di_timestamp"
   static readonly TIME_MS = "di_time_ms"
 }
