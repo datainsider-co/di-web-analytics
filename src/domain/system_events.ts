@@ -3,7 +3,8 @@ export enum SystemEvents {
   SCREEN_EXIT = "di_screen_exit",
   PAGE_VIEW = "di_pageview",
   SESSION_CREATED = "di_session_created",
-  SESSION_END = "di_session_end"
+  SESSION_END = "di_session_end",
+  SET_USER = 'di_set_user'
 }
 
 export class EventColumnIds {

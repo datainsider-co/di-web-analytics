@@ -1,5 +1,5 @@
-import {trackingService} from '../src/service';
 import {expect} from 'chai';
+import TRACKING_SERVICE from '../src/service/tracking_service';
 
 describe('Test tracking service', () => {
   const trackId = 'trace_id_test';
@@ -35,7 +35,7 @@ describe('Test tracking service', () => {
   // });
 
   it('Should track is success', async () => {
-    const trackId = await trackingService.track(apiKey, 'product_purchased', {
+    const success = await TRACKING_SERVICE.track('product_purchased', {
       productName: 'Laptop',
       category: 'Computer',
       price: 10000,
@@ -46,22 +46,8 @@ describe('Test tracking service', () => {
       createdAt: Date.now(),
       ...defaultValues
     });
-    console.log('track::trackId::', trackId);
-    expect(trackId).not.undefined;
+    console.log('track::success::', success);
+    expect(success).true;
   });
 
-  it('Should engage is success', async () => {
-    const trackId = await trackingService.engage(apiKey, userId, {
-      displayName: 'Vi Chi Thien',
-      firstName: 'Thien',
-      lastName: 'Thien',
-      age: 18,
-      email: 'tvc12@gmail.com',
-      gender: 'Male',
-      updatedTime: Date.now(),
-      createdTime: Date.now(),
-    });
-    console.log('engage::trackId::', trackId);
-    expect(trackId).not.undefined;
-  });
 });

@@ -1,37 +1,31 @@
-
-import {DITrackingRepository, TrackingRepository} from '../repository';
-import {baseClient} from '../misc/base_client';
-import {Properties} from '../domain';
+import {TrackingRepository, TrackingRepositoryImpl} from '../repository';
+import {Event, Properties} from '../domain';
+import {BASE_CLIENT} from '../misc/base_client';
 
 export abstract class TrackingService {
-  abstract genTrackId(url: string, trackingApiKey: string): Promise<string>;
+  abstract track(event: string, properties: Properties): Promise<boolean>;
 
-  abstract track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
-
-  abstract engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
+  abstract multiTrack(events: Event[]): Promise<boolean>;
 }
 
 
-export class DITrackingService extends TrackingService {
+export class TrackingServiceImpl extends TrackingService {
   private readonly trackingRepository: TrackingRepository;
 
-  constructor(repository: TrackingRepository) {
+  constructor(trackingRepository: TrackingRepository) {
     super();
-    this.trackingRepository = repository;
+    this.trackingRepository = trackingRepository;
   }
 
-  genTrackId(url: string, trackingApiKey: string): Promise<string> {
-    return this.trackingRepository.genTrackId(url, trackingApiKey);
+  multiTrack(events: Event[]): Promise<boolean> {
+    return this.trackingRepository.multiTrack(events);
   }
 
-  track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
-    return this.trackingRepository.track(url, trackingApiKey, event, properties);
-  }
-
-  engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined> {
-    return this.trackingRepository.engage(url, trackingApiKey, userId, properties);
+  track(event: string, properties: Properties): Promise<boolean> {
+    return this.trackingRepository.track(event, properties);
   }
 }
 
-export const trackingService: TrackingService = new DITrackingService(new DITrackingRepository(baseClient));
+const TRACKING_SERVICE: TrackingService = new TrackingServiceImpl(new TrackingRepositoryImpl(BASE_CLIENT));
 
+export default TRACKING_SERVICE;

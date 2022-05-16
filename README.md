@@ -1,30 +1,37 @@
 # DI-Web-Analytics
 
-### Getting started
+### Build project for npm package
 
-+ Build
 ```bash
-npm run build
+yarn build
 ```
 
-+ Deploy
+#### 🚀 Deploy
 
 ```bash
 npm publish
 ```
 
+### Build project with webpack
 
-+ Build for webpack
+⚠️ M1 CPU cant run, please run with intel CPU
 
-M1 CPU cant run, please run with intel CPU
+#### 🛵 Development
 
 ```bash
-./build_webpack_development.sh
+./build_webpack.sh development
+```
+
+#### 🏍️ Production
+
+```bash
+./build_webpack.sh production
+```
+
+### Run test case
+
+```bash
+yarn test
 ```
 
 
-Build production
-
-```bash
- npx webpack build --config ./webpack.config.js --mode=production
-```

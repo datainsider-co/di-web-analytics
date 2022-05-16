@@ -1,44 +1,51 @@
+import {Properties, Event} from '../domain';
+import BaseClient from '../misc/base_client';
 
-import { Properties } from '../domain';
-import { BaseClient } from '../service';
+class TrackingResponse {
+  success: boolean;
 
+  constructor(success: boolean) {
+    this.success = success;
+  }
+}
 
 export abstract class TrackingRepository {
-  abstract genTrackId(url: string, trackingApiKey: string): Promise<string>;
+  abstract track(event: string, properties: Properties): Promise<boolean>;
 
-  abstract track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined>;
-
-  abstract engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined>;
+  abstract multiTrack(events: Event[]): Promise<boolean>;
 }
 
 
-export class DITrackingRepository extends TrackingRepository {
+export class TrackingRepositoryImpl extends TrackingRepository {
+  private readonly client: BaseClient;
 
-  constructor(private readonly client: BaseClient) {
+  constructor(client: BaseClient) {
     super();
+    this.client = client;
   }
 
-  engage(url: string, trackingApiKey: string, userId: string, properties: Properties): Promise<string | undefined> {
-    return this.client.post(`${url}/api/tracking/engage`, {
-      trackingApiKey: trackingApiKey,
-      userId: userId,
-      properties: properties
-    }, {
-      params: { 'tracking_api_key': trackingApiKey }
+  multiTrack(events: Event[]): Promise<boolean> {
+    return this.client.post('/api/tracking/warehouse/track', {
+      events: TrackingRepositoryImpl.toJson(events)
+    }).then(response => TrackingRepositoryImpl.getResult(response).success);
+  }
+
+  track(event: string, properties: Properties): Promise<boolean> {
+    return this.multiTrack([{eventName: event, properties: properties}]);
+  }
+
+  private static getResult(data: string): TrackingResponse {
+    const response = JSON.parse(data);
+    return new TrackingResponse(response.success);
+  }
+
+  private static toJson(events: Event[]): string {
+    const obj = events.map(event => {
+      return {
+        event_name: event.eventName,
+        properties: event.properties
+      };
     });
-  }
-
-  genTrackId(url: string, trackingApiKey: string): Promise<string> {
-    return this.client.post(`${url}/api/tracking/gen_track_id`, { trackingApiKey: trackingApiKey });
-  }
-
-  track(url: string, trackingApiKey: string, event: string, properties: Properties): Promise<string | undefined> {
-    return this.client.post(`${url}/api/tracking/track`, {
-      trackingApiKey: trackingApiKey,
-      event: event,
-      properties: properties
-    }, {
-      params: { 'tracking_api_key': trackingApiKey }
-    });
+    return JSON.stringify(obj);
   }
 }
