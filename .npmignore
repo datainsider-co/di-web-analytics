@@ -1,6 +1,8 @@
 /src
 /examples
 /tests
+/public
+/.idea
 tsconfig.json
 .eslintrc.json
 .prettierrc
