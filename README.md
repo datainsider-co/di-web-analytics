@@ -1,15 +1,33 @@
-# DI-Web-Analytics
+# di-web-analytics
+
+### Getting Started
+
+#### Install
+🥰 using npm
+
+```bash
+npm i di-web-analytics
+```
+
+🏺 using yarn
+
+```bash
+yarn add di-web-analytics
+```
+
+#### Tracking
+
+```ts
+import {DiAnalytics} from 'di-web-analytics';
+
+DiAnalytics.init('')
+```
+
 
 ### Build project for npm package
 
 ```bash
 yarn build
-```
-
-#### 🚀 Deploy
-
-```bash
-npm publish
 ```
 
 ### Build project with webpack
@@ -34,4 +52,9 @@ npm publish
 yarn test
 ```
 
+#### 🚀 Deploy
+
+```bash
+npm publish
+```
 
