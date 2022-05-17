@@ -1,14 +1,19 @@
 //@ts-ignore
-const pkg = require('../../package.json')
+const pkg = require('../../package.json');
 
-const LibConfig = Object.freeze({
+const LibConfig = Object({
   timeout: 45000,
   baseHeaders: {
     'Content-Type': 'application/json'
   },
   platform: 'web',
   version: pkg.version || '0.0.1',
-  sessionMaxInactiveDuration: 3 * 60 * 60 * 1000 // 3 hours
+  sessionMaxInactiveDuration: 6 * 60 * 60 * 1000, // 6 hours
+  apiKey: '',
+  host: '',
+  setValue: (key: string, value: any) => {
+    return Object.assign(LibConfig, {[key]: value});
+  }
 });
 
-export default LibConfig
+export default LibConfig;

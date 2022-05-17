@@ -2,16 +2,17 @@ import { Properties } from "../domain";
 import { DataManager } from "../misc/data_manager";
 import { AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore } from "./analytics_core";
 import NotifyUsingCookies from '../misc/notify_using_cookies';
+import LibConfig from '../domain/config';
 
 export class DiAnalytics {
   private static instance: BaseAnalyticsCore;
 
   private static getInstance(): BaseAnalyticsCore {
     if (!this.instance) {
-      const url = DataManager.getTrackingUrl();
-      const trackingApiKey = DataManager.getTrackingApiKey();
-      if (url && trackingApiKey) {
-        this.init(url, trackingApiKey);
+      const host = DataManager.getTrackingHost();
+      const apiKey = DataManager.getTrackingApiKey();
+      if (host && apiKey) {
+        this.init(host, apiKey);
       } else {
         throw new Error("DiAnalytics: You have to call DiAnalytics.getInstance first.");
       }
@@ -21,26 +22,21 @@ export class DiAnalytics {
 
   /**
    * TODO: Clear additional data & queue... etc
-   * @param url
-   * @param trackingApiKey
+   * @param host current host for tracking service
+   * @param apiKey
    * @param properties
-   * @param disable
+   * @param isDisable
    */
-  static init(url: string, trackingApiKey: string, properties?: Properties, disable?: boolean) {
-    if (disable ?? false) {
+  static init(host: string, apiKey: string, properties?: Properties, isDisable?: boolean) {
+    if (isDisable ?? false) {
       this.instance = new DisableAnalyticsCore();
     } else {
-      this.instance = this.createAnalytics(url, trackingApiKey, properties);
-    }
-  }
-
-  private static createAnalytics(url: string, trackingApiKey: string, properties?: Properties): BaseAnalyticsCore {
-    if (trackingApiKey && trackingApiKey.length !== 0 && url && url.length !== 0) {
-      DataManager.setTrackingUrl(url);
-      DataManager.setTrackingApiKey(trackingApiKey);
-      return new AnalyticsCore(url, trackingApiKey, properties || {});
-    } else {
-      throw new Error("DiAnalytics: trackingApiKey must not empty string!");
+      LibConfig
+        .setValue('apiKey', apiKey)
+        .setValue('host', host);
+      DataManager.setTrackingHost(host);
+      DataManager.setTrackingApiKey(apiKey);
+      this.instance = new AnalyticsCore(properties || {});
     }
   }
 

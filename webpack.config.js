@@ -26,7 +26,7 @@ module.exports = {
       type: 'umd',
       export: 'default'
     },
-    filename: 'sdk.index.js',
+    filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
   }
 };

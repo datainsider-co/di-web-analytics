@@ -1,14 +1,13 @@
-import { Properties } from "../domain";
-import { DataManager } from "../misc/data_manager";
-import { trackingService } from "./tracking_service";
-import LibConfig from "../domain/config";
-import AnalyticsUtils from "../misc/analytics_utils";
-import { Stopwatch, StopwatchFactory } from "../misc/event_stopwatch";
-import { PersistentQueue } from "../misc/persistent_queue";
-import { EventColumnIds, SystemEvents } from "../domain/system_events";
-import { TrackingSessionManager } from "../misc/tracking_session_manager";
-import { TrackingSessionInfo } from "../domain/tracking_session_info";
-import { Mutex } from "async-mutex";
+import {Properties} from '../domain';
+import {DataManager} from '../misc/data_manager';
+import LibConfig from '../domain/config';
+import AnalyticsUtils from '../misc/analytics_utils';
+import {Stopwatch, StopwatchFactory} from '../misc/event_stopwatch';
+import {PersistentQueue} from '../misc/persistent_queue';
+import {EventColumnIds, SystemEvents} from '../domain/system_events';
+import {TrackingSessionManager} from '../misc/tracking_session_manager';
+import {TrackingSessionInfo} from '../domain/tracking_session_info';
+import {Mutex} from 'async-mutex';
 
 
 export abstract class BaseAnalyticsCore {
@@ -52,7 +51,7 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
   }
 
   async getTrackingId(): Promise<string> {
-    return Promise.resolve("");
+    return Promise.resolve('');
   }
 
   identify(userId: string): void {
@@ -62,10 +61,6 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
   }
 
   reset(): void {
-  }
-
-  setUserProfile(userId: string, properties: Properties): Promise<any> {
-    return Promise.resolve(undefined);
   }
 
   time(event: string): void {
@@ -78,13 +73,17 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
   track(event: string, properties: Properties): void {
   }
 
+  setUserProfile(userId: string, properties: Properties): Promise<any> {
+    return Promise.resolve(undefined);
+  }
+
 }
 
 export class AnalyticsCore extends BaseAnalyticsCore {
   private readonly mutex = new Mutex();
 
-  private readonly url: string;
-  private readonly trackingApiKey: string;
+  // private readonly url: string;
+  // private readonly trackingApiKey: string;
   private globalProperties: Properties;
 
   private lastScreenName?: string;
@@ -93,53 +92,35 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   private readonly worker: PersistentQueue = new PersistentQueue();
 
 
-  constructor(url: string, trackingApiKey: string, properties: Properties) {
+  constructor(properties: Properties) {
     super();
-    this.url = url;
-    this.trackingApiKey = trackingApiKey;
-    let props = {
+    const props = {
       ...DataManager.getGlobalProperties(),
       ...properties
     };
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
     this.getTrackingId().then(() => this.touchSession());
-    this.setupAndStartWorker();
+    this.setupWorker();
   }
 
-  private setupAndStartWorker() {
+  private setupWorker() {
 
-    document.addEventListener("readystatechange", event => {
-      if (document.readyState === "complete") {
-        window.addEventListener("unload", (event) => {
-          this.worker.stop();
-        });
-      }
+    document.addEventListener('readystatechange', event => {
+      window.addEventListener('beforeunload', async (event) => {
+        await this.worker.stop();
+      });
     });
   }
 
   reset() {
-    this.lastScreenName = "";
+    this.lastScreenName = '';
     this.stopwatch.clear();
     DataManager.reset();
   }
 
   async getTrackingId(): Promise<string> {
-    const generateTrackingId = async (): Promise<string> => {
-      return trackingService.genTrackId(this.url, this.trackingApiKey).then(trackingId => {
-        if (!trackingId) {
-          throw Error("Can't generate tracking id");
-        }
-        DataManager.setTrackingId(trackingId);
-        return trackingId;
-      });
-    };
-
-    let trackId = DataManager.getTrackingId();
-    if (!trackId) {
-      trackId = await generateTrackingId();
-    }
-    return trackId;
+    return LibConfig.trackingApiKey;
   }
 
   register(properties: Properties) {
@@ -153,20 +134,20 @@ export class AnalyticsCore extends BaseAnalyticsCore {
 
   enterScreenStart(name: string) {
     this.time(SystemEvents.SCREEN_ENTER);
-    this.lastScreenName = name || "";
+    this.lastScreenName = name || '';
   }
 
   enterScreen(name: string, userProps: Properties = {}): void {
-    this.lastScreenName = name || "";
+    this.lastScreenName = name || '';
     this.time(`di_pageview_${name}`);
-    const properties = { ...userProps };
+    const properties = {...userProps};
     properties[EventColumnIds.SCREEN_NAME] = name;
     this.track(SystemEvents.SCREEN_ENTER, properties);
   }
 
   exitScreen(name: string, userProps: Properties = {}): void {
     const elapseDuration = this.stopwatch.stop(`di_pageview_${name}`);
-    const properties = { ...userProps };
+    const properties = {...userProps};
     properties[EventColumnIds.SCREEN_NAME] = name;
     properties[EventColumnIds.START_TIME] = elapseDuration.startTime || 0;
     properties[EventColumnIds.DURATION] = elapseDuration.duration || 0;
@@ -217,7 +198,10 @@ export class AnalyticsCore extends BaseAnalyticsCore {
 
   setUserProfile(userId: string, properties: Properties) {
     DataManager.setUserId(userId);
-    return this.worker.enqueueEngage(this.url, this.trackingApiKey, userId, properties);
+    return this.worker.add(SystemEvents.SET_USER, {
+        [EventColumnIds.USER_ID]: userId,
+      ...properties
+    });
   }
 
   track(event: string, properties: Properties): void {
@@ -226,8 +210,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   }
 
   private enqueueEventData(event: string, properties: Properties): void {
-
-    this.worker.enqueueEvent(this.url, this.trackingApiKey, event, properties);
+    this.worker.add(event, properties);
   }
 
   /**
@@ -281,9 +264,9 @@ export class AnalyticsCore extends BaseAnalyticsCore {
 
     result[EventColumnIds.LIB_PLATFORM] = LibConfig.platform;
     result[EventColumnIds.LIB_VERSION] = LibConfig.version;
-    result[EventColumnIds.SESSION_ID] = sessionInfo.sessionId || properties[EventColumnIds.SESSION_ID] || "";
-    result[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || "";
-    result[EventColumnIds.USER_ID] = DataManager.getUserId() || "";
+    result[EventColumnIds.SESSION_ID] = sessionInfo.sessionId || properties[EventColumnIds.SESSION_ID] || '';
+    result[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
+    result[EventColumnIds.USER_ID] = DataManager.getUserId() || '';
     result[EventColumnIds.TIME] = properties[EventColumnIds.TIME] || Date.now();
 
     return result;

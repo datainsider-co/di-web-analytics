@@ -1,11 +1,13 @@
-import {trackingService} from '../src/service';
 import {expect} from 'chai';
+import TRACKING_SERVICE from '../src/service/tracking_service';
+import LibConfig from '../src/domain/config';
 
 describe('Test tracking service', () => {
-  const trackId = 'trace_id_test';
+  const trackId = '"user-123456';
 
-  const apiKey = 'test_api_key';
+  const apiKey = '"c2c09332-14a1-4eb1-8964-2d85b2a561c8';
   const userId = 'test_user';
+  const host = 'http://dev.datainsider.co'
 
   const defaultValues = {
     diPlatform: 'web',
@@ -17,25 +19,10 @@ describe('Test tracking service', () => {
     diTime: Date.now()
   };
 
-  const defaultEngageValues = {
-    diPlatform: 'web',
-    diLibVersion: '0.0.1',
-    diTrackingId: trackId,
-    diUserId: userId,
-    diStartTime: 0,
-    diDuration: 0,
-    diTime: Date.now(),
-    birthDate: 0
-  };
-
-  // it('Should generate api key success', async () => {
-  //   const trackId = await trackingService.genTrackId(apiKey);
-  //   console.log('track::trackId::', trackId);
-  //   expect(trackId).not.undefined;
-  // });
+  LibConfig.setValue('apiKey', apiKey).setValue('host', host)
 
   it('Should track is success', async () => {
-    const trackId = await trackingService.track(apiKey, 'product_purchased', {
+    const success = await TRACKING_SERVICE.track('product_purchased', {
       productName: 'Laptop',
       category: 'Computer',
       price: 10000,
@@ -46,22 +33,8 @@ describe('Test tracking service', () => {
       createdAt: Date.now(),
       ...defaultValues
     });
-    console.log('track::trackId::', trackId);
-    expect(trackId).not.undefined;
+    console.log('track::success::', success);
+    expect(success).true;
   });
 
-  it('Should engage is success', async () => {
-    const trackId = await trackingService.engage(apiKey, userId, {
-      displayName: 'Vi Chi Thien',
-      firstName: 'Thien',
-      lastName: 'Thien',
-      age: 18,
-      email: 'tvc12@gmail.com',
-      gender: 'Male',
-      updatedTime: Date.now(),
-      createdTime: Date.now(),
-    });
-    console.log('engage::trackId::', trackId);
-    expect(trackId).not.undefined;
-  });
 });

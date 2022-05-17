@@ -1,59 +1,93 @@
-import {Properties} from "../domain";
-import Queue from "storage-based-queue";
-import {SubmitEngageWorker, SubmitEventWorker} from './workers';
+import Queue from 'storage-based-queue';
+import {Message, SubmitEventWorker} from './workers';
 import {Mutex} from 'async-mutex';
+import {Event, Properties} from '../domain';
 
-Queue.workers({SubmitEventWorker, SubmitEngageWorker});
+Queue.workers({SubmitEventWorker});
 
 export class PersistentQueue {
   private readonly queue = new Queue({
     storage: 'localstorage'
   });
 
-  private readonly eventChannel = this.queue.create('event-channel');
-  private readonly engageChannel = this.queue.create('engage-channel');
+  private readonly maxSize: number;
+  private readonly timePersistent: number;
+  private readonly eventChannel = this.queue.create('event-track-channel');
   private readonly mutex = new Mutex();
+  private tempEvents: Event[] = [];
+  private currentScheduleId: number | null = null;
 
-  constructor() {
+  /**
+   * @param queueSize max size để chờ persist xuống storage
+   * @param timePersistent thời gian max để chờ persist, tính theo millis
+   */
+  constructor(queueSize = 100, timePersistent = 60000) {
+    this.maxSize = queueSize;
+    this.timePersistent = timePersistent;
+
     this.start();
   }
 
   private start() {
     this.eventChannel.start();
-    this.engageChannel.start();
   }
 
-  stop() {
+  async stop() {
     this.eventChannel.stop();
-    this.engageChannel.stop();
+    await this.persist()
   }
 
-  async enqueueEvent(url: string, trackingApiKey: string, event: string, properties: Properties) {
+  async add(event: string, properties: Properties) {
     const releaser = await this.mutex.acquire();
     try {
-      return await this.eventChannel.add({
-        priority: 1,
-        label: event,
-        createdAt: Date.now(),
-        handler: 'SubmitEventWorker',
-        args: {url: url, trackingApiKey: trackingApiKey, event: event, properties: properties},
+      this.tempEvents.push({
+        name: event,
+        properties: properties
       });
+
+      if (this.tempEvents.length > this.maxSize) {
+        await this.persist()
+      } else {
+        this.schedulePersist();
+      }
+
     } finally {
       releaser();
     }
   }
 
-  async enqueueEngage(url: string, trackingApiKey: string, userId: string, properties: Properties) {
-    const releaser = await this.mutex.acquire();
+  private async persist() {
     try {
-      return await this.engageChannel.add({
-        priority: 1,
-        createdAt: Date.now(),
-        handler: 'SubmitEngageWorker',
-        args: {url: url, trackingApiKey: trackingApiKey, userId: userId, properties: properties},
-      });
-    } finally {
-      releaser();
+      if (this.tempEvents.length > 0) {
+        await this.eventChannel.add({
+          priority: 1,
+          label: 'persist-event',
+          createdAt: Date.now(),
+          handler: 'SubmitEventWorker',
+          args: { events: this.tempEvents } as Message,
+        });
+        this.tempEvents = [];
+      }
+    } catch (ex) {
+      // ignore exception
+      console.warn('persist error', ex);
     }
+  }
+
+  private schedulePersist() {
+    // clear old schedule time
+    if (this.currentScheduleId) {
+      clearTimeout(this.currentScheduleId);
+    }
+
+    // add new schedule
+    this.currentScheduleId = setTimeout(async () => {
+      const releaser = await this.mutex.acquire();
+      try {
+        await this.persist();
+      } finally {
+        releaser();
+      }
+    }, this.timePersistent)
   }
 }

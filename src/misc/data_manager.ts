@@ -13,15 +13,15 @@ export class DataManager {
     this.deleteGlobalProperties();
   }
 
-  static setTrackingUrl(url: string): void {
+  static setTrackingHost(url: string): void {
     localStorage.setItem(DataManager.TRACKING_URL, url);
   }
 
-  static getTrackingUrl(): string | undefined {
+  static getTrackingHost(): string | undefined {
     return localStorage.getItem(DataManager.TRACKING_URL) || void 0;
   }
 
-  static deleteTrackingUrl(): void {
+  static deleteTrackingHost(): void {
     localStorage.removeItem(DataManager.TRACKING_URL);
   }
 

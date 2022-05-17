@@ -1,5 +1,5 @@
-export * from './tracking_service';
-export * from '../misc/cookie_manager';
-export * from '../misc/base_client';
-export * from '../misc/data_manager';
+// created from 'create-ts-index'
 
+export * from './analytics_core';
+export * from './di_analytics';
+export * from './tracking_service';

@@ -1,6 +1,6 @@
 {
   "name": "di-web-analytics",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Data insider web analytics",
   "repository": {
     "type": "git",
@@ -27,6 +27,7 @@
     "@types/mocha": "^5.2.4",
     "@types/uuid": "^8.3.0",
     "chai": "^4.1.2",
+    "create-ts-index": "^1.14.0",
     "css-loader": "^6.2.0",
     "deepmerge": "^4.2.2",
     "eslint": "^6.7.2",

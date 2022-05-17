@@ -1,30 +1,76 @@
-# DI-Web-Analytics
+# di-web-analytics
 
-### Getting started
+### Getting Started
 
-+ Build
+#### Install
+
+🥰 using npm
+
 ```bash
-npm run build
+npm i di-web-analytics
 ```
 
-+ Deploy
+🏺 using yarn
+
+```bash
+yarn add di-web-analytics
+```
+
+#### Init Tracking
+
+```ts
+import DiAnalytics from 'di-web-analytics';
+
+DiAnalytics.init(host: string, apiKey: string, properties?: Properties, isDisable?: boolean);
+```
+
++ Example:
+
+```ts
+import DiAnalytics from 'di-web-analytics';
+
+DiAnalytics.init('http://dev.datainsider.co', '649623fc-88a8-4cb3-ae45-73cadf659987', {}, false);
+```
+
++ Track data
+
+```ts
+import DiAnalytics from 'di-web-analytics';
+
+DiAnalytics.track('login', { name: 'Lina Kunde', age: 24 })
+```
+
+### Build project for npm package
+
+```bash
+yarn build
+```
+
+### Build project with webpack
+
+⚠️ M1 CPU cant run, please run with intel CPU
+
+#### 🛵 Development
+
+```bash
+./build_webpack.sh development
+```
+
+#### 🏍️ Production
+
+```bash
+./build_webpack.sh production
+```
+
+### Run test case
+
+```bash
+yarn test
+```
+
+#### 🚀 Deploy
 
 ```bash
 npm publish
 ```
 
-
-+ Build for webpack
-
-M1 CPU cant run, please run with intel CPU
-
-```bash
-./build_webpack_development.sh
-```
-
-
-Build production
-
-```bash
- npx webpack build --config ./webpack.config.js --mode=production
-```
