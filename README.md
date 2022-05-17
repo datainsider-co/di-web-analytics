@@ -3,6 +3,7 @@
 ### Getting Started
 
 #### Install
+
 🥰 using npm
 
 ```bash
@@ -15,14 +16,29 @@ npm i di-web-analytics
 yarn add di-web-analytics
 ```
 
-#### Tracking
+#### Init Tracking
 
 ```ts
-import {DiAnalytics} from 'di-web-analytics';
+import DiAnalytics from 'di-web-analytics';
 
-DiAnalytics.init('')
+DiAnalytics.init(host: string, apiKey: string, properties?: Properties, isDisable?: boolean);
 ```
 
++ Example:
+
+```ts
+import DiAnalytics from 'di-web-analytics';
+
+DiAnalytics.init('http://dev.datainsider.co', '649623fc-88a8-4cb3-ae45-73cadf659987', {}, false);
+```
+
++ Track data
+
+```ts
+import DiAnalytics from 'di-web-analytics';
+
+DiAnalytics.track('login', { name: 'Lina Kunde', age: 24 })
+```
 
 ### Build project for npm package
 

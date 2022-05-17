@@ -10,9 +10,9 @@ export class DiAnalytics {
   private static getInstance(): BaseAnalyticsCore {
     if (!this.instance) {
       const host = DataManager.getTrackingHost();
-      const trackingApiKey = DataManager.getTrackingApiKey();
-      if (host && trackingApiKey) {
-        this.init(host, trackingApiKey);
+      const apiKey = DataManager.getTrackingApiKey();
+      if (host && apiKey) {
+        this.init(host, apiKey);
       } else {
         throw new Error("DiAnalytics: You have to call DiAnalytics.getInstance first.");
       }
@@ -23,19 +23,19 @@ export class DiAnalytics {
   /**
    * TODO: Clear additional data & queue... etc
    * @param host current host for tracking service
-   * @param trackingApiKey
+   * @param apiKey
    * @param properties
    * @param isDisable
    */
-  static init(host: string, trackingApiKey: string, properties?: Properties, isDisable?: boolean) {
+  static init(host: string, apiKey: string, properties?: Properties, isDisable?: boolean) {
     if (isDisable ?? false) {
       this.instance = new DisableAnalyticsCore();
     } else {
       LibConfig
-        .setValue('apiKey', trackingApiKey)
+        .setValue('apiKey', apiKey)
         .setValue('host', host);
       DataManager.setTrackingHost(host);
-      DataManager.setTrackingApiKey(trackingApiKey);
+      DataManager.setTrackingApiKey(apiKey);
       this.instance = new AnalyticsCore(properties || {});
     }
   }
