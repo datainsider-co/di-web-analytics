@@ -40,12 +40,6 @@ import DiAnalytics from 'di-web-analytics';
 DiAnalytics.track('login', { name: 'Lina Kunde', age: 24 })
 ```
 
-### Build project for npm package
-
-```bash
-yarn build
-```
-
 ### Build project with webpack
 
 ⚠️ M1 CPU cant run, please run with intel CPU
@@ -74,3 +68,6 @@ yarn test
 npm publish
 ```
 
+### License
+
+[MIT @datainsider](./LICENSE)
