@@ -96,7 +96,7 @@ export default class AnalyticsUtils {
     properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
     properties[EventColumnIds.BROWSER_USER_AGENT] = navigator.userAgent || '';
     properties[EventColumnIds.BROWSER_PREFERRED_LANG] = navigator.language || '';
-    properties[EventColumnIds.BROWSER_LANGUAGES] = navigator.languages || [];
+    properties[EventColumnIds.BROWSER_LANGUAGES] = JSON.stringify(navigator.languages || []);
     properties[EventColumnIds.PLATFORM] = devicePlatform.type;
     properties[EventColumnIds.PLATFORM_MODEL] = devicePlatform.model;
     properties[EventColumnIds.PLATFORM_VENDOR] = devicePlatform.vendor;

@@ -4,7 +4,7 @@ export enum SystemEvents {
   PAGE_VIEW = "di_pageview",
   SESSION_CREATED = "di_session_created",
   SESSION_END = "di_session_end",
-  SET_USER = 'di_set_user'
+  SET_USER = 'di_customers'
 }
 
 export class EventColumnIds {
