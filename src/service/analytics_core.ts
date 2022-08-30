@@ -199,7 +199,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   setUserProfile(userId: string, properties: Properties) {
     DataManager.setUserId(userId);
     return this.worker.add(SystemEvents.SET_USER, {
-        [EventColumnIds.USER_ID]: userId,
+        [EventColumnIds.DI_CUSTOMER_ID]: userId,
       ...properties
     });
   }
@@ -266,9 +266,9 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     result[EventColumnIds.LIB_VERSION] = LibConfig.version;
     result[EventColumnIds.SESSION_ID] = sessionInfo.sessionId || properties[EventColumnIds.SESSION_ID] || '';
     result[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
-    result[EventColumnIds.USER_ID] = DataManager.getUserId() || '';
     result[EventColumnIds.TIME] = properties[EventColumnIds.TIME] || Date.now();
 
+    result[EventColumnIds.DI_CUSTOMER_ID] = DataManager.getUserId() || '';
     return result;
   }
 

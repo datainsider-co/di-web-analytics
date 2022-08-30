@@ -89,17 +89,22 @@ export default class AnalyticsUtils {
 
     const properties: Properties = {};
 
+    properties[EventColumnIds.DEVICE_NAME] = devicePlatform.type;
+    properties[EventColumnIds.DEVICE_VERSION] = devicePlatform.model;
     properties[EventColumnIds.OS] = deviceOS.name;
     properties[EventColumnIds.OS_VERSION] = deviceOS.version;
-    properties[EventColumnIds.OS_VERSION_NAME] = deviceOS.versionName;
-    properties[EventColumnIds.BROWSER] = deviceBrowser.name;
-    properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
-    properties[EventColumnIds.BROWSER_USER_AGENT] = navigator.userAgent || '';
-    properties[EventColumnIds.BROWSER_PREFERRED_LANG] = navigator.language || '';
-    properties[EventColumnIds.BROWSER_LANGUAGES] = JSON.stringify(navigator.languages || []);
-    properties[EventColumnIds.PLATFORM] = devicePlatform.type;
-    properties[EventColumnIds.PLATFORM_MODEL] = devicePlatform.model;
-    properties[EventColumnIds.PLATFORM_VENDOR] = devicePlatform.vendor;
+
+    properties[EventColumnIds.PLATFORM] = deviceBrowser.name;
+    properties[EventColumnIds.PLATFORM_VERSION] = deviceBrowser.version;
+    // properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
+
+    // properties[EventColumnIds.BROWSER] = deviceBrowser.name;
+    // properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
+    // properties[EventColumnIds.BROWSER_USER_AGENT] = navigator.userAgent || '';
+    // properties[EventColumnIds.BROWSER_PREFERRED_LANG] = navigator.language || '';
+    // properties[EventColumnIds.BROWSER_LANGUAGES] = JSON.stringify(navigator.languages || []);
+
+    // properties[EventColumnIds.PLATFORM_VENDOR] = devicePlatform.vendor;
     return properties;
 
   }
