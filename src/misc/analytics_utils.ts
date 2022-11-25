@@ -1,6 +1,7 @@
 import Bowser from 'bowser';
 import {Properties} from '../domain/properties';
 import {EventColumnIds} from '../domain/system_events';
+import {CampaignInfo} from '@/domain';
 
 export enum SearchEngine {
   GOOGLE = 'google',
@@ -79,7 +80,12 @@ export default class AnalyticsUtils {
       properties[EventColumnIds.SEARCH_ENGINE_KEYWORD] = AnalyticsUtils.getSearchKeyword(referrer.href);
       properties[EventColumnIds.REFERRER_QUERY_PARAMS] = AnalyticsUtils.getQueryParamsAsJson(referrer.search);
     }
-    return properties;
+    const campaignInfo = AnalyticsUtils.getCampaignInfo(url.href);
+
+    return {
+      ...properties,
+      ...campaignInfo
+    };
   }
 
   static buildClientSpecifications(): Properties {
@@ -89,17 +95,22 @@ export default class AnalyticsUtils {
 
     const properties: Properties = {};
 
+    properties[EventColumnIds.DEVICE_NAME] = devicePlatform.type;
+    properties[EventColumnIds.DEVICE_VERSION] = devicePlatform.model;
     properties[EventColumnIds.OS] = deviceOS.name;
     properties[EventColumnIds.OS_VERSION] = deviceOS.version;
-    properties[EventColumnIds.OS_VERSION_NAME] = deviceOS.versionName;
-    properties[EventColumnIds.BROWSER] = deviceBrowser.name;
-    properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
-    properties[EventColumnIds.BROWSER_USER_AGENT] = navigator.userAgent || '';
-    properties[EventColumnIds.BROWSER_PREFERRED_LANG] = navigator.language || '';
-    properties[EventColumnIds.BROWSER_LANGUAGES] = navigator.languages || [];
-    properties[EventColumnIds.PLATFORM] = devicePlatform.type;
-    properties[EventColumnIds.PLATFORM_MODEL] = devicePlatform.model;
-    properties[EventColumnIds.PLATFORM_VENDOR] = devicePlatform.vendor;
+
+    properties[EventColumnIds.PLATFORM] = deviceBrowser.name;
+    properties[EventColumnIds.PLATFORM_VERSION] = deviceBrowser.version;
+    // properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
+
+    // properties[EventColumnIds.BROWSER] = deviceBrowser.name;
+    // properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
+    // properties[EventColumnIds.BROWSER_USER_AGENT] = navigator.userAgent || '';
+    // properties[EventColumnIds.BROWSER_PREFERRED_LANG] = navigator.language || '';
+    // properties[EventColumnIds.BROWSER_LANGUAGES] = JSON.stringify(navigator.languages || []);
+
+    // properties[EventColumnIds.PLATFORM_VENDOR] = devicePlatform.vendor;
     return properties;
 
   }
@@ -170,5 +181,17 @@ export default class AnalyticsUtils {
   static getDevicePlatform(userAgent: string): PlatformInfo {
     let platform = Bowser.getParser(userAgent).getPlatform();
     return new PlatformInfo(platform.type || '', platform.model || '', platform.vendor || '');
+  }
+
+  static getCampaignInfo(url: string): CampaignInfo {
+    let params = this.getQueryParams(url);
+    return {
+      utm_id: params['utm_id'],
+      utm_campaign: params['utm_campaign'],
+      utm_source: params['utm_source'],
+      utm_medium: params['utm_medium'],
+      utm_term: params['utm_term'],
+      utm_content: params['utm_content']
+    };
   }
 }

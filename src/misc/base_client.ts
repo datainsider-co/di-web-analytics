@@ -73,6 +73,7 @@ export const BASE_CLIENT: BaseClient = new HttpClient(
   Axios.create({
     timeout: LibConfig.timeout,
     headers: LibConfig.baseHeaders,
+    withCredentials: false,
     transformRequest: (data: AxiosTransformer) => {
       return JSON.stringify({
         api_key: LibConfig.apiKey,
