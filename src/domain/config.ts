@@ -8,7 +8,7 @@ const LibConfig = Object({
   },
   platform: 'web',
   version: pkg.version || '0.0.1',
-  sessionMaxInactiveDuration: 6 * 60 * 60 * 1000, // 6 hours
+  sessionMaxInactiveDuration: 24 * 60 * 60 * 1000, // 24 hours
   apiKey: '',
   host: '',
   setValue: (key: string, value: any) => {
