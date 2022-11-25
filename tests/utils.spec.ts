@@ -146,6 +146,31 @@ describe('URL Parser', () => {
 
   });
 
+  it("test get utm params", () => {
+    const url = "https://rocket-bi.ddns.net?utm_source=google&utm_medium=banner&utm_campaign=banner_1&utm_id=123456&utm_term=spring_sales&utm_content=hello123";
+    const campaign = AnalyticsUtils.getCampaignInfo(url);
+    console.log('campaign', campaign);
+    expect(campaign.utm_campaign).equal("banner_1");
+    expect(campaign.utm_content).equal("hello123");
+    expect(campaign.utm_id).equal("123456");
+    expect(campaign.utm_medium).equal("banner");
+    expect(campaign.utm_source).equal("google");
+    expect(campaign.utm_term).equal("spring_sales");
+  });
+
+  it("test get utm params with utm_source & utm_medium", () => {
+    const url = "https://rocket-bi.ddns.net?utm_source=google&utm_medium=banner";
+    const campaign = AnalyticsUtils.getCampaignInfo(url);
+    console.log('campaign', campaign);
+    expect(campaign.utm_campaign).is.undefined;
+    expect(campaign.utm_content).is.undefined;
+    expect(campaign.utm_id).is.undefined;
+    expect(campaign.utm_medium).equal("banner");
+    expect(campaign.utm_source).equal("google");
+    expect(campaign.utm_term).is.undefined;
+  });
+
+
 
 });
 
