@@ -14,7 +14,7 @@ describe('Test tracking service', () => {
     di_platform: 'web',
     di_lib_version: '0.0.1',
     di_tracking_id: trackId,
-    di_user_id: userId,
+    di_customer_id: userId,
     di_start_time: 0,
     di_duration: 0,
     di_time: Date.now()
@@ -46,6 +46,18 @@ describe('Test tracking service', () => {
     }
     const success = await TRACKING_SERVICE.multiTrack(events);
     console.log('multiTrack::success::', success);
+    expect(success).true;
+  });
+
+  it('should track user is success', async () => {
+    const success = await TRACKING_SERVICE.track('di_customer_id', {
+      'di_user_id': 'up-d47a7e4c-3d08-4aa6-a7af-5024672500ab',
+      'di_customer_email': 'meomeocf98@gmail.com',
+      'di_customer_full_name': 'Vi Thien',
+      'di_customer_first_name': 'Vi',
+      'di_customer_last_name': 'Thien'
+    });
+    console.log('track user is success::', success);
     expect(success).true;
   });
 });
