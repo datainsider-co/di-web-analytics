@@ -50,7 +50,7 @@ describe('Test tracking service', () => {
   });
 
   it('should track user is success', async () => {
-    const success = await TRACKING_SERVICE.track('di_customer_id', {
+    const success = await TRACKING_SERVICE.track('di_customers', {
       'di_user_id': 'up-d47a7e4c-3d08-4aa6-a7af-5024672500ab',
       'di_customer_email': 'meomeocf98@gmail.com',
       'di_customer_full_name': 'Vi Thien',
