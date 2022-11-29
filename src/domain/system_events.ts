@@ -4,7 +4,9 @@ export enum SystemEvents {
   PAGE_VIEW = "di_pageview",
   SESSION_CREATED = "di_session_created",
   SESSION_END = "di_session_end",
-  SET_USER = 'di_customers'
+  SET_USER = 'di_customers',
+  TRACK_TRANSACTION = 'di_transactions',
+  TRACK_PRODUCT = 'di_products',
 }
 
 export class EventColumnIds {
@@ -44,4 +46,6 @@ export class EventColumnIds {
   static readonly DURATION = "di_duration"
   static readonly TIME = "di_timestamp"
   static readonly TIME_MS = "di_time_ms"
+  static readonly TRANSACTION_ID = "di_transaction_id"
+  static readonly PRODUCT_ID = "di_product_id"
 }

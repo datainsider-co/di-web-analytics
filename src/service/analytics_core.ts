@@ -1,4 +1,4 @@
-import {Properties} from '../domain';
+import {Properties, TransactionProperties} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../misc/analytics_utils';
@@ -8,6 +8,7 @@ import {EventColumnIds, SystemEvents} from '../domain/system_events';
 import {TrackingSessionManager} from '../misc/tracking_session_manager';
 import {TrackingSessionInfo} from '../domain/tracking_session_info';
 import {Mutex} from 'async-mutex';
+import {ProductProperties} from '@/domain/product_properties';
 
 
 export abstract class BaseAnalyticsCore {
@@ -33,6 +34,10 @@ export abstract class BaseAnalyticsCore {
   abstract setUserProfile(userId: string, properties: Properties): Promise<any>
 
   abstract track(event: string, properties: Properties): void
+
+  abstract trackProduct(productId: string, properties: Properties): void
+
+  abstract trackTransaction(transactionId: string, properties: TransactionProperties): void
 }
 
 export class DisableAnalyticsCore extends BaseAnalyticsCore {
@@ -75,6 +80,12 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
 
   setUserProfile(userId: string, properties: Properties): Promise<any> {
     return Promise.resolve(undefined);
+  }
+
+  trackProduct(productId: string, properties: Properties): void {
+  }
+
+  trackTransaction(transactionId: string, properties: TransactionProperties): void {
   }
 
 }
@@ -286,6 +297,20 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     if (!properties[EventColumnIds.DURATION]) {
       properties[EventColumnIds.DURATION] = elapseDuration.duration || 0;
     }
+  }
+
+  trackProduct(productId: string, properties: ProductProperties): void {
+    this.worker.add(SystemEvents.TRACK_PRODUCT, {
+      ...properties,
+      [EventColumnIds.PRODUCT_ID]: productId,
+    });
+  }
+
+  trackTransaction(transactionId: string, properties: TransactionProperties): void {
+    this.worker.add(SystemEvents.TRACK_TRANSACTION, {
+      ...properties,
+      [EventColumnIds.TRANSACTION_ID]: transactionId,
+    });
   }
 
 }
