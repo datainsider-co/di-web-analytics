@@ -1,8 +1,8 @@
 import {Properties} from './properties';
 
 export interface ProductProperties extends Properties {
-  diProductId?: string;
-  diProductName?: string;
-  diProductPrice?: number;
-  diProductCategory?: string;
+  di_product_id?: string;
+  di_product_name?: string;
+  di_product_price?: number;
+  di_product_category?: string;
 }
