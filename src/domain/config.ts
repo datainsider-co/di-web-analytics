@@ -1,6 +1,8 @@
 //@ts-ignore
 const pkg = require('../../package.json');
 
+import {LoggerLevel} from '../service';
+
 const LibConfig = Object({
   timeout: 45000,
   baseHeaders: {
@@ -13,7 +15,8 @@ const LibConfig = Object({
   host: '',
   setValue: (key: string, value: any) => {
     return Object.assign(LibConfig, {[key]: value});
-  }
+  },
+  loggerLevel: LoggerLevel.Error
 });
 
 export default LibConfig;

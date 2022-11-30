@@ -1,4 +1,4 @@
-import {Properties, TransactionProperties} from '../domain';
+import {CustomerProperties, Properties, TransactionProperties} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../misc/analytics_utils';
@@ -31,7 +31,7 @@ export abstract class BaseAnalyticsCore {
 
   abstract identify(userId: string): void
 
-  abstract setUserProfile(userId: string, properties: Properties): Promise<any>
+  abstract setUserProfile(userId: string, properties: CustomerProperties): Promise<any>
 
   abstract track(event: string, properties: Properties): void
 
@@ -78,7 +78,7 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
   track(event: string, properties: Properties): void {
   }
 
-  setUserProfile(userId: string, properties: Properties): Promise<any> {
+  setUserProfile(userId: string, properties: CustomerProperties): Promise<any> {
     return Promise.resolve(undefined);
   }
 
@@ -207,12 +207,13 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     DataManager.setUserId(userId);
   }
 
-  setUserProfile(userId: string, properties: Properties) {
-    DataManager.setUserId(userId);
-    return this.worker.add(SystemEvents.SET_USER, {
-        [EventColumnIds.DI_CUSTOMER_ID]: userId,
-      ...properties
-    });
+  setUserProfile(customerId: string, properties: CustomerProperties): Promise<void> {
+    DataManager.setUserId(customerId);
+    const customerProperties: CustomerProperties = {
+      ...properties,
+      di_customer_id: customerId
+    }
+    return this.worker.add(SystemEvents.SET_USER, customerProperties);
   }
 
   track(event: string, properties: Properties): void {

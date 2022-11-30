@@ -1,9 +1,10 @@
-import {Properties, TransactionProperties} from '../domain';
+import {CustomerProperties, Properties, TransactionProperties} from '../domain';
 import { DataManager } from "../misc/data_manager";
 import { AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore } from "./analytics_core";
 import NotifyUsingCookies from '../misc/notify_using_cookies';
 import LibConfig from '../domain/config';
 import {ProductProperties} from '@/domain/product_properties';
+import {Logger, LoggerLevel} from '@/service/logger';
 
 export class DiAnalytics {
   private static instance: BaseAnalyticsCore;
@@ -39,6 +40,11 @@ export class DiAnalytics {
       DataManager.setTrackingApiKey(apiKey);
       this.instance = new AnalyticsCore(properties || {});
     }
+  }
+
+  static setLoggerLevel(level: LoggerLevel): DiAnalytics {
+    LibConfig.setValue('loggerLevel', level);
+    return this;
   }
 
 
@@ -87,9 +93,13 @@ export class DiAnalytics {
     return this.getInstance().identify(userId);
   }
 
-  static async setUserProfile(userId: string, properties: Properties = {}): Promise<any> {
-    await this.getInstance().touchSession();
-    return this.getInstance().setUserProfile(userId, properties);
+  static async setUserProfile(userId: string, properties: CustomerProperties = {}): Promise<void> {
+    try {
+      await this.getInstance().touchSession();
+      await this.getInstance().setUserProfile(userId, properties);
+    } catch (ex) {
+      console.error('setUserProfile::', ex);
+    }
   }
 
   static async trackProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
