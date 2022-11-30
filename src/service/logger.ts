@@ -1,5 +1,3 @@
-import LibConfig from '@/domain/config';
-
 export enum LoggerLevel {
   All = 0,
   Trace = 1,
@@ -11,8 +9,14 @@ export enum LoggerLevel {
 }
 
 export class Logger {
+  private static logLevel = LoggerLevel.Error;
+
   static getCurrentLevel(): LoggerLevel {
-    return LibConfig.loggerLevel ?? LoggerLevel.Error;
+    return Logger.logLevel;
+  }
+
+  static setLogLevel(level: LoggerLevel) {
+    Logger.logLevel = level;
   }
 
   static debug(...data: any) {
