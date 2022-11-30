@@ -3,8 +3,8 @@ import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
 import LibConfig from '../domain/config';
-import {ProductProperties} from '@/domain/product_properties';
-import {Logger, LoggerLevel} from '@/service/logger';
+import {ProductProperties} from '../domain/product_properties';
+import {Logger, LoggerLevel} from './logger';
 
 export class DiAnalytics {
   private static instance: BaseAnalyticsCore;
