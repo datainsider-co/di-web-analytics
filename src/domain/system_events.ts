@@ -11,16 +11,12 @@ export enum SystemEvents {
 
 export class EventColumnIds {
   static readonly EVENT_ID = "di_event_id"
-  static readonly EVENT_NAME = "di_event"
-  static readonly EVENT_DISPLAY_NAME = "di_event_display_name"
-  static readonly IS_SYSTEM_EVENT = "di_system_event"
   static readonly LIB_PLATFORM = "di_lib_platform"
   static readonly LIB_VERSION = "di_lib_version"
   static readonly TRACKING_ID = "di_tracking_id"
   static readonly SESSION_ID = "di_session_id"
   static readonly DI_CUSTOMER_ID = "di_customer_id"
   static readonly SCREEN_NAME = "di_screen_name"
-  static readonly CLIENT_IP = "di_client_ip"
   static readonly URL = "di_url"
   static readonly PATH = "di_path"
   static readonly QUERY_PARAMS = "di_url_params"

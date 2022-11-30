@@ -3,6 +3,7 @@ import { DataManager } from "../misc/data_manager";
 import { AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore } from "./analytics_core";
 import NotifyUsingCookies from '../misc/notify_using_cookies';
 import LibConfig from '../domain/config';
+import {ProductProperties} from '@/domain/product_properties';
 
 export class DiAnalytics {
   private static instance: BaseAnalyticsCore;
@@ -91,7 +92,7 @@ export class DiAnalytics {
     return this.getInstance().setUserProfile(userId, properties);
   }
 
-  static async trackProduct(productId: string, properties: Properties = {}): Promise<void> {
+  static async trackProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
     try {
       await this.getInstance().touchSession();
       return this.getInstance().trackProduct(productId, properties);
