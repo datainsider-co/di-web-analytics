@@ -50,7 +50,7 @@ export class PersistentQueue {
     }
   }
 
-  async add(event: string, properties: Properties) {
+  async add(event: string, properties: Properties): Promise<void> {
     const releaser = await this.mutex.acquire();
     try {
       this.events.push({

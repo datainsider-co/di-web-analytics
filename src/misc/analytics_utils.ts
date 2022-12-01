@@ -1,6 +1,5 @@
 import Bowser from 'bowser';
 import {Properties} from '../domain/properties';
-import {EventColumnIds} from '../domain/system_events';
 import {CampaignInfo, EventProperties} from '../domain';
 
 export enum SearchEngine {
