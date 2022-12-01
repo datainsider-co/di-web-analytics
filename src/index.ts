@@ -1,4 +1,4 @@
-import {DiAnalytics} from './service/di_analytics';
+// created from 'create-ts-index'
 
 export * from './domain';
 export * from './misc';
