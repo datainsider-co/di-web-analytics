@@ -5,7 +5,7 @@ export enum SystemEvents {
   SESSION_CREATED = "di_session_created",
   SESSION_END = "di_session_end",
   SET_USER = 'di_customers',
-  TRACK_TRANSACTION = 'di_transactions',
+  PURCHASE = 'di_purchase',
   TRACK_PRODUCT = 'di_products',
 }
 

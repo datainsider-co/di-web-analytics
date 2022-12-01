@@ -1,6 +1,6 @@
-import {Properties} from './properties';
+import {EventProperties} from './event_properties';
 
-export interface TransactionProperties extends Properties {
+export interface TransactionProperties extends EventProperties {
   di_transaction_id?: string;
   di_product_id?: string;
   di_customer_id?: string;

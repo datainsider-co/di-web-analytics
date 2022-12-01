@@ -1,9 +1,8 @@
-import {CustomerProperties, Properties, TransactionProperties} from '../domain';
+import {CustomerProperties, Properties, SystemEvents, TransactionProperties} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
 import LibConfig from '../domain/config';
-import {ProductProperties} from '../domain/product_properties';
 import {Logger, LoggerLevel} from './logger';
 
 export class DiAnalytics {
@@ -42,6 +41,9 @@ export class DiAnalytics {
     }
   }
 
+  /**
+   * change log level in runtime
+   */
   static setLoggerLevel(level: LoggerLevel): DiAnalytics {
     Logger.setLogLevel(level);
     return this;
@@ -78,10 +80,10 @@ export class DiAnalytics {
     }
   }
 
-  static async register(properties: Properties): Promise<void> {
+  static async setGlobalConfig(properties: Properties): Promise<void> {
     try {
       await this.getInstance().touchSession();
-      await this.getInstance().register(properties);
+      await this.getInstance().setGlobalConfig(properties);
     } catch (ex) {
       Logger.error('DiAnalytics.register failed', ex);
     }
@@ -125,19 +127,27 @@ export class DiAnalytics {
     }
   }
 
-  static async trackProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
-    try {
-      await this.getInstance().touchSession();
-      await this.getInstance().trackProduct(productId, properties);
-    } catch (ex) {
-      Logger.error('DiAnalytics.trackProduct failed', ex);
-    }
-  }
+  // static async trackProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
+  //   try {
+  //     await this.getInstance().touchSession();
+  //     await this.getInstance().track(SystemEvents.TRACK_PRODUCT, {
+  //       ...properties,
+  //       di_event_name: SystemEvents.TRACK_PRODUCT
+  //     });
+  //   } catch (ex) {
+  //     Logger.error('DiAnalytics.trackProduct failed', ex);
+  //   }
+  // }
 
-  static async trackTransaction(transactionId: string, properties: TransactionProperties = {}): Promise<void> {
+  static async purchase(transactionId: string, properties: TransactionProperties = {}): Promise<void> {
     try {
       await this.getInstance().touchSession();
-      await this.getInstance().trackTransaction(transactionId, properties);
+      const finalProperties: TransactionProperties = {
+        ...properties,
+        di_event_name: SystemEvents.PURCHASE,
+        di_transaction_id: transactionId || properties.di_transaction_id
+      };
+      await this.getInstance().track(SystemEvents.PURCHASE, finalProperties);
     } catch (ex) {
       Logger.error('DiAnalytics.trackTransaction failed', ex);
     }

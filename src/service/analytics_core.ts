@@ -17,7 +17,7 @@ export abstract class BaseAnalyticsCore {
 
   abstract getTrackingId(): Promise<string>
 
-  abstract register(properties: Properties): void
+  abstract setGlobalConfig(properties: Properties): void
 
   abstract enterScreenStart(name: string): void
 
@@ -33,7 +33,7 @@ export abstract class BaseAnalyticsCore {
 
   abstract setUserProfile(userId: string, properties: CustomerProperties): Promise<any>
 
-  abstract track(event: string, properties: Properties): void
+  abstract track(event: string, properties: Properties | EventProperties): void
 }
 
 export class DisableAnalyticsCore extends BaseAnalyticsCore {
@@ -58,7 +58,7 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
   identify(userId: string): void {
   }
 
-  register(properties: Properties): void {
+  setGlobalConfig(properties: Properties): void {
   }
 
   reset(): void {
@@ -123,13 +123,13 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     return LibConfig.trackingApiKey;
   }
 
-  register(properties: Properties) {
-    let props = {
+  setGlobalConfig(newProperties: Properties) {
+    const finalProperties: Properties = {
       ...this.globalProperties,
-      ...properties
+      ...newProperties
     };
-    DataManager.setGlobalProperties(props);
-    this.globalProperties = props;
+    DataManager.setGlobalProperties(finalProperties);
+    this.globalProperties = finalProperties;
   }
 
   enterScreenStart(name: string) {
