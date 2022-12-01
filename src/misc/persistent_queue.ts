@@ -2,6 +2,7 @@ import Queue from 'storage-based-queue';
 import {Message, SubmitEventWorker} from './workers';
 import {Mutex} from 'async-mutex';
 import {Event, Properties} from '../domain';
+import {Logger} from '../service/logger';
 
 Queue.workers({SubmitEventWorker});
 
@@ -14,7 +15,7 @@ export class PersistentQueue {
   private readonly timePersistent: number;
   private readonly eventChannel = this.queue.create('event-track-channel');
   private readonly mutex = new Mutex();
-  private tempEvents: Event[] = [];
+  private events: Event[] = [];
   private currentScheduleId: number | null = null;
 
   /**
@@ -29,24 +30,38 @@ export class PersistentQueue {
   }
 
   private start() {
+    Logger.debug('PersistentQueue::start');
     this.eventChannel.start();
+    Logger.debug('PersistentQueue::start completed');
   }
 
   async stop() {
-    this.eventChannel.stop();
-    await this.persist()
+    const releaser = await this.mutex.acquire();
+
+    try {
+      const events = Array.from(this.events);
+      this.events = [];
+      await this.persist(events);
+      this.eventChannel.stop();
+    } catch (ex){
+      Logger.error('PersistentQueue::stop error', ex);
+    } finally {
+      releaser();
+    }
   }
 
   async add(event: string, properties: Properties) {
     const releaser = await this.mutex.acquire();
     try {
-      this.tempEvents.push({
+      this.events.push({
         name: event,
         properties: properties
       });
 
-      if (this.tempEvents.length > this.maxSize) {
-        await this.persist()
+      if (this.events.length > this.maxSize) {
+        const events = Array.from(this.events);
+        this.events = [];
+        this.persist(events);
       } else {
         this.schedulePersist();
       }
@@ -56,21 +71,20 @@ export class PersistentQueue {
     }
   }
 
-  private async persist() {
+  private async persist(events: Event[]): Promise<void> {
     try {
-      if (this.tempEvents.length > 0) {
+      if (events.length > 0) {
         await this.eventChannel.add({
           priority: 1,
           label: 'persist-event',
           createdAt: Date.now(),
           handler: 'SubmitEventWorker',
-          args: { events: this.tempEvents } as Message,
+          args: {events: events} as Message
         });
-        this.tempEvents = [];
       }
     } catch (ex) {
       // ignore exception
-      console.warn('persist error', ex);
+      Logger.warn('persist error', ex);
     }
   }
 
@@ -84,10 +98,13 @@ export class PersistentQueue {
     this.currentScheduleId = setTimeout(async () => {
       const releaser = await this.mutex.acquire();
       try {
-        await this.persist();
+        // quick swap events
+        const events = Array.from(this.events);
+        this.events = [];
+        this.persist(events);
       } finally {
         releaser();
       }
-    }, this.timePersistent)
+    }, this.timePersistent);
   }
 }

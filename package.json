@@ -53,7 +53,7 @@
     "js-cookies": "^1.0.4",
     "mini-json": "^1.0.0",
     "storage-based-queue": "^1.2.6",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
     "webpack": "^5.50.0",
     "webpack-cli": "^4.8.0"
   }

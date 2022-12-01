@@ -1,4 +1,4 @@
-import {CustomerProperties, Properties, TransactionProperties} from '../domain';
+import {CustomerProperties, EventProperties, Properties} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import LibConfig from '../domain/config';
 import AnalyticsUtils from '../misc/analytics_utils';
@@ -8,7 +8,7 @@ import {EventColumnIds, SystemEvents} from '../domain/system_events';
 import {TrackingSessionManager} from '../misc/tracking_session_manager';
 import {TrackingSessionInfo} from '../domain/tracking_session_info';
 import {Mutex} from 'async-mutex';
-import {ProductProperties} from '@/domain/product_properties';
+import { v4 as uuidv4 } from 'uuid';
 
 
 export abstract class BaseAnalyticsCore {
@@ -34,10 +34,6 @@ export abstract class BaseAnalyticsCore {
   abstract setUserProfile(userId: string, properties: CustomerProperties): Promise<any>
 
   abstract track(event: string, properties: Properties): void
-
-  abstract trackProduct(productId: string, properties: Properties): void
-
-  abstract trackTransaction(transactionId: string, properties: TransactionProperties): void
 }
 
 export class DisableAnalyticsCore extends BaseAnalyticsCore {
@@ -81,13 +77,6 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
   setUserProfile(userId: string, properties: CustomerProperties): Promise<any> {
     return Promise.resolve(undefined);
   }
-
-  trackProduct(productId: string, properties: Properties): void {
-  }
-
-  trackTransaction(transactionId: string, properties: TransactionProperties): void {
-  }
-
 }
 
 export class AnalyticsCore extends BaseAnalyticsCore {
@@ -186,7 +175,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
 
   private createSession(): void {
     const properties = this.buildCreateSessionTrackingData();
-    return this.enqueueEventData(SystemEvents.SESSION_CREATED, properties);
+    this.worker.add(SystemEvents.SESSION_CREATED, properties);
   }
 
   private endSession(sessionInfo: TrackingSessionInfo): void {
@@ -212,16 +201,12 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     const customerProperties: CustomerProperties = {
       ...properties,
       di_customer_id: customerId
-    }
+    };
     return this.worker.add(SystemEvents.SET_USER, customerProperties);
   }
 
   track(event: string, properties: Properties): void {
-    const eventProperties = this.buildTrackingData(event, properties);
-    this.enqueueEventData(event, eventProperties);
-  }
-
-  private enqueueEventData(event: string, properties: Properties): void {
+    const eventProperties: EventProperties = this.buildEventProperties(event, properties);
     this.worker.add(event, properties);
   }
 
@@ -230,7 +215,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
    * @private
    */
   private buildCreateSessionTrackingData(): Properties {
-    const properties = this.buildTrackingData(SystemEvents.SESSION_CREATED, {});
+    const properties = this.buildEventProperties(SystemEvents.SESSION_CREATED, {});
     const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
     properties[EventColumnIds.SESSION_ID] = sessionId;
     properties[EventColumnIds.START_TIME] = createdAt;
@@ -255,63 +240,50 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   /**
    * Build a full tracking tracking data from the given data.
    * @param event
-   * @param properties
+   * @param customProperties
    * @private
    */
-  private buildTrackingData(event: string, properties: Properties): Properties {
-    const trackingId = DataManager.getTrackingId();
+  private buildEventProperties(event: string, customProperties: Properties | EventProperties): EventProperties {
     const sessionInfo = TrackingSessionManager.getSession();
-    this.enrichScreenName(properties);
-    this.enrichDuration(event, properties);
 
-    const result: Properties = {
-      ...this.globalProperties,
-      ...properties,
+    this.enrichScreenName(customProperties);
+    this.enrichDuration(event, customProperties);
+
+    const systemProperties: EventProperties = {
+      di_event_id: customProperties.di_event_id || uuidv4(),
+      di_timestamp: customProperties.di_timestamp || Date.now(),
+      di_customer_id: customProperties.di_customer_id || DataManager.getUserId(),
+      di_session_id: customProperties.di_session_id || sessionInfo.sessionId,
+      app_version: LibConfig.version,
+      app_name: LibConfig.platform,
       ...AnalyticsUtils.buildClientSpecifications(),
       ...AnalyticsUtils.buildPageAndReferrerInfo(
-        properties[EventColumnIds.URL],
-        properties[EventColumnIds.REFERRER]
+        customProperties.di_url,
+        customProperties.di_referrer
       )
     };
 
-    result[EventColumnIds.LIB_PLATFORM] = LibConfig.platform;
-    result[EventColumnIds.LIB_VERSION] = LibConfig.version;
-    result[EventColumnIds.SESSION_ID] = sessionInfo.sessionId || properties[EventColumnIds.SESSION_ID] || '';
-    result[EventColumnIds.TRACKING_ID] = trackingId || properties[EventColumnIds.TRACKING_ID] || '';
-    result[EventColumnIds.TIME] = properties[EventColumnIds.TIME] || Date.now();
-
-    result[EventColumnIds.DI_CUSTOMER_ID] = DataManager.getUserId() || '';
-    return result;
+    const finalProperties: EventProperties = {
+      ...this.globalProperties,
+      ...systemProperties,
+      ...customProperties
+    };
+    return finalProperties;
   }
 
-  private enrichScreenName(properties: Properties) {
-    if (!properties[EventColumnIds.SCREEN_NAME]) {
-      properties[EventColumnIds.SCREEN_NAME] = this.lastScreenName || window.document.location.pathname;
+  private enrichScreenName(properties: Properties | EventProperties): void {
+    if (!properties.di_screen_name) {
+      properties.di_screen_name = this.lastScreenName || window.document.location.pathname;
     }
   }
 
-  private enrichDuration(event: string, properties: Properties) {
+  private enrichDuration(event: string, properties: Properties | EventProperties) {
     const elapseDuration = this.stopwatch.stop(event);
-    if (!properties[EventColumnIds.START_TIME]) {
-      properties[EventColumnIds.START_TIME] = elapseDuration.startTime || 0;
+    if (!properties.di_start_time) {
+      properties.di_start_time = elapseDuration.startTime || 0;
     }
-    if (!properties[EventColumnIds.DURATION]) {
-      properties[EventColumnIds.DURATION] = elapseDuration.duration || 0;
+    if (!properties.di_duration) {
+      properties.di_duration = elapseDuration.duration || 0;
     }
   }
-
-  trackProduct(productId: string, properties: ProductProperties): void {
-    this.worker.add(SystemEvents.TRACK_PRODUCT, {
-      ...properties,
-      [EventColumnIds.PRODUCT_ID]: productId,
-    });
-  }
-
-  trackTransaction(transactionId: string, properties: TransactionProperties): void {
-    this.worker.add(SystemEvents.TRACK_TRANSACTION, {
-      ...properties,
-      [EventColumnIds.TRANSACTION_ID]: transactionId,
-    });
-  }
-
 }

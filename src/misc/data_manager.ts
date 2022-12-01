@@ -55,18 +55,6 @@ export class DataManager {
     localStorage.removeItem(DataManager.GLOBAL_PROPERTIES);
   }
 
-  static getTrackingId(): string | undefined {
-    return localStorage.getItem(DataManager.TRACKING_ID) || void 0;
-  }
-
-  static setTrackingId(trackId: string) {
-    localStorage.setItem(DataManager.TRACKING_ID, trackId);
-  }
-
-  static deleteTrackingId() {
-    localStorage.removeItem(DataManager.TRACKING_ID);
-  }
-
   static setUserId(userId: string): void {
     localStorage.setItem(DataManager.USER_ID, userId);
   }
