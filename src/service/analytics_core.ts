@@ -139,7 +139,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   }
 
   enterScreen(name: string, properties: EventProperties = {}): Promise<void> {
-    this.lastScreenName = name || '';
+    this.lastScreenName = name;
     this.time(`di_pageview_${name}`);
     const finalProperties: EventProperties = {
       ...properties,
@@ -156,6 +156,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
       di_start_time: elapseDuration.startTime || 0,
       di_duration: elapseDuration.duration || 0
     };
+    this.lastScreenName = '';
     return this.track(SystemEvents.PAGE_VIEW, finalProperties);
   }
 
@@ -207,7 +208,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
       ...properties,
       di_customer_id: customerId
     };
-    return this.worker.add(SystemEvents.SET_USER, customerProperties);
+    return this.worker.add(SystemEvents.TRACK_CUSTOMERS, customerProperties);
   }
 
   track(event: string, properties: Properties): Promise<void> {

@@ -130,9 +130,9 @@ export class DiAnalytics {
   static async viewProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
     try {
       await this.getInstance().touchSession();
-      await this.getInstance().track(SystemEvents.TRACK_PRODUCT, {
+      await this.getInstance().track(SystemEvents.VIEW_PRODUCT, {
         ...properties,
-        di_event_name: SystemEvents.TRACK_PRODUCT
+        di_event_name: SystemEvents.VIEW_PRODUCT
       });
     } catch (ex) {
       Logger.error('DiAnalytics.trackProduct failed', ex);
