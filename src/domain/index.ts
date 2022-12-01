@@ -8,6 +8,7 @@ export * from './event_properties';
 export * from './product_properties';
 export * from './product_purchase_properties';
 export * from './properties';
+export * from './search_properties';
 export * from './system_events';
 export * from './tracking_session_info';
 export * from './transaction_properties';

@@ -1,4 +1,12 @@
-import {CustomerProperties, ProductProperties, ProductPurchaseProperties, Properties, SystemEvents, TransactionProperties} from '../domain';
+import {
+  CustomerProperties,
+  ProductProperties,
+  ProductPurchaseProperties,
+  Properties,
+  SearchProperties,
+  SystemEvents,
+  TransactionProperties
+} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
@@ -135,8 +143,7 @@ export class DiAnalytics {
     return this.track(SystemEvents.ProductViewed, properties);
   }
 
-  static async searchProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
-    properties.di_product_id = productId;
+  static async searchProduct(properties: SearchProperties = {}): Promise<void> {
     return this.track(SystemEvents.ProductSearched, properties);
   }
 
