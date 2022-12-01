@@ -134,7 +134,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   }
 
   enterScreenStart(name: string) {
-    this.time(SystemEvents.SCREEN_ENTER);
+    this.time(SystemEvents.ScreenEnter);
     this.lastScreenName = name || '';
   }
 
@@ -145,7 +145,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
       ...properties,
       di_screen_name: name
     };
-    return this.track(SystemEvents.SCREEN_ENTER, finalProperties);
+    return this.track(SystemEvents.ScreenEnter, finalProperties);
   }
 
   exitScreen(name: string, properties: EventProperties = {}): Promise<void> {
@@ -157,7 +157,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
       di_duration: elapseDuration.duration || 0
     };
     this.lastScreenName = '';
-    return this.track(SystemEvents.PAGE_VIEW, finalProperties);
+    return this.track(SystemEvents.PageView, finalProperties);
   }
 
 
@@ -181,12 +181,12 @@ export class AnalyticsCore extends BaseAnalyticsCore {
 
   private async createSession(): Promise<void> {
     const properties: EventProperties = this.createSessionProperties();
-    await this.worker.add(SystemEvents.SESSION_CREATED, properties);
+    await this.worker.add(SystemEvents.SessionCreated, properties);
   }
 
   private endSession(sessionInfo: TrackingSessionInfo): Promise<void> {
     const properties = this.buildEndSessionTrackingData(sessionInfo);
-    return this.track(SystemEvents.SESSION_END, properties);
+    return this.track(SystemEvents.SessionEnd, properties);
   }
 
   time(event: string) {
@@ -194,12 +194,12 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   }
 
   //TODO: Send an event to server to resolve old events with this user id
-  identify(userId: string): void {
+  identify(customerId: string): void {
     const oldUserId = DataManager.getUserId();
-    if (oldUserId && oldUserId.length !== 0 && oldUserId !== userId) {
+    if (oldUserId && oldUserId.length !== 0 && oldUserId !== customerId) {
       DataManager.reset();
     }
-    DataManager.setUserId(userId);
+    DataManager.setUserId(customerId);
   }
 
   setUserProfile(customerId: string, properties: CustomerProperties): Promise<void> {
@@ -208,7 +208,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
       ...properties,
       di_customer_id: customerId
     };
-    return this.worker.add(SystemEvents.TRACK_CUSTOMERS, customerProperties);
+    return this.worker.add(SystemEvents.SetCustomer, customerProperties);
   }
 
   track(event: string, properties: Properties): Promise<void> {
@@ -221,7 +221,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
    * @private
    */
   private createSessionProperties(): EventProperties {
-    const properties = this.buildEventProperties(SystemEvents.SESSION_CREATED, {});
+    const properties = this.buildEventProperties(SystemEvents.SessionCreated, {});
     const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
     properties.di_session_id = sessionId;
     properties.di_start_time = createdAt;

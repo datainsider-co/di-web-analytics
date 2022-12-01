@@ -130,9 +130,9 @@ export class DiAnalytics {
   static async viewProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
     try {
       await this.getInstance().touchSession();
-      await this.getInstance().track(SystemEvents.VIEW_PRODUCT, {
+      await this.getInstance().track(SystemEvents.ProductView, {
         ...properties,
-        di_event_name: SystemEvents.VIEW_PRODUCT
+        di_event_name: SystemEvents.ProductView
       });
     } catch (ex) {
       Logger.error('DiAnalytics.trackProduct failed', ex);
@@ -144,10 +144,10 @@ export class DiAnalytics {
       await this.getInstance().touchSession();
       const finalProperties: TransactionProperties = {
         ...properties,
-        di_event_name: SystemEvents.PURCHASE,
+        di_event_name: SystemEvents.Purchase,
         di_transaction_id: transactionId || properties.di_transaction_id
       };
-      await this.getInstance().track(SystemEvents.PURCHASE, finalProperties);
+      await this.getInstance().track(SystemEvents.Purchase, finalProperties);
     } catch (ex) {
       Logger.error('DiAnalytics.trackTransaction failed', ex);
     }
