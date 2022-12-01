@@ -1,4 +1,4 @@
-import {CustomerProperties, Properties, SystemEvents, TransactionProperties} from '../domain';
+import {CustomerProperties, ProductProperties, Properties, SystemEvents, TransactionProperties} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
@@ -127,17 +127,17 @@ export class DiAnalytics {
     }
   }
 
-  // static async trackProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
-  //   try {
-  //     await this.getInstance().touchSession();
-  //     await this.getInstance().track(SystemEvents.TRACK_PRODUCT, {
-  //       ...properties,
-  //       di_event_name: SystemEvents.TRACK_PRODUCT
-  //     });
-  //   } catch (ex) {
-  //     Logger.error('DiAnalytics.trackProduct failed', ex);
-  //   }
-  // }
+  static async viewProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
+    try {
+      await this.getInstance().touchSession();
+      await this.getInstance().track(SystemEvents.TRACK_PRODUCT, {
+        ...properties,
+        di_event_name: SystemEvents.TRACK_PRODUCT
+      });
+    } catch (ex) {
+      Logger.error('DiAnalytics.trackProduct failed', ex);
+    }
+  }
 
   static async purchase(transactionId: string, properties: TransactionProperties = {}): Promise<void> {
     try {
