@@ -1,6 +1,9 @@
 import {EventProperties} from './event_properties';
 
 export interface SearchProperties extends EventProperties {
-  di_search_string?: string;
-  di_product_category?: string;
+  search_text?: string;
+  url?: string;
+  category_detect?: string;
+  promo_detect?: string;
+  result_url?: string;
 }

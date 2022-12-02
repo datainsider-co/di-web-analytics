@@ -1,11 +1,15 @@
 import {
+  AddToCartProperties,
+  CancelOrderProperties,
+  CheckoutProperties,
   CustomerProperties,
   ProductProperties,
-  ProductPurchaseProperties,
   Properties,
+  RemoveFromCartProperties,
+  ReturnOrderProperties,
   SearchProperties,
   SystemEvents,
-  TransactionProperties
+  ViewProductProperties
 } from '../domain';
 import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
@@ -138,38 +142,40 @@ export class DiAnalytics {
     }
   }
 
-  static async viewProduct(productId: string, properties: ProductProperties = {}): Promise<void> {
-    properties.di_product_id = productId;
-    return this.track(SystemEvents.ProductViewed, properties);
+  static async viewProduct(properties: ViewProductProperties): Promise<void> {
+    return this.track(SystemEvents.ViewProduct, properties);
   }
 
-  static async searchProduct(properties: SearchProperties = {}): Promise<void> {
-    return this.track(SystemEvents.ProductSearched, properties);
+  static async search(properties: SearchProperties): Promise<void> {
+    return this.track(SystemEvents.Search, properties);
   }
 
-  static async addToCart(productId: string, properties: ProductProperties = {}): Promise<void> {
-    properties.di_product_id = productId;
+  static async addToCart(properties: AddToCartProperties): Promise<void> {
     return this.track(SystemEvents.AddToCart, properties);
   }
 
-  static async removeFromCart(productId: string, properties: ProductProperties = {}): Promise<void> {
-    properties.di_product_id = productId;
+  static async removeFromCart(properties: RemoveFromCartProperties): Promise<void> {
     await this.track(SystemEvents.RemoveFromCart, properties);
   }
 
-  static async startCheckout(transactionId: string, properties: TransactionProperties = {}): Promise<void> {
-    properties.di_product_id = transactionId;
-    await this.track(SystemEvents.CheckoutStart, properties);
+  static async checkout(checkoutProperties: CheckoutProperties, customer?: CustomerProperties, products?: ProductProperties[]): Promise<void> {
+    await this.track(SystemEvents.Checkout, checkoutProperties);
+    if (customer) {
+      await this.track(SystemEvents.AddCustomer, customer);
+    }
+    // if (products) {
+    //   for (const product of products) {
+    //     await this.track(SystemEvents.ViewProduct, product);
+    //   }
+    // }
   }
 
-  static async completePurchase(transactionId: string, properties: TransactionProperties = {}): Promise<void> {
-    properties.di_transaction_id = transactionId;
-    return this.track(SystemEvents.CompletePurchase, properties);
+  static async cancelOrder(properties: CancelOrderProperties): Promise<void> {
+    await this.track(SystemEvents.CancelOrder, properties);
   }
 
-  static async trackProductPurchase(transactionId: string, properties: ProductPurchaseProperties = {}): Promise<void> {
-    properties.di_transaction_id = transactionId;
-    return this.track(SystemEvents.ProductPurchased, properties);
+  static async returnOrder(properties: ReturnOrderProperties): Promise<void> {
+    await this.track(SystemEvents.ReturnOrder, properties);
   }
 
   static notifyUsingCookies(title: string, message: string, allowLabel: string, declineLabel: string): void {

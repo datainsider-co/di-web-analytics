@@ -208,7 +208,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
       ...properties,
       di_customer_id: customerId
     };
-    return this.worker.add(SystemEvents.SetCustomer, customerProperties);
+    return this.worker.add(SystemEvents.AddCustomer, customerProperties);
   }
 
   track(event: string, properties: Properties): Promise<void> {
