@@ -8,7 +8,7 @@ Queue.workers({SubmitEventWorker});
 
 export class PersistentQueue {
   private readonly queue = new Queue({
-    storage: 'localstorage'
+    storage: 'indexeddb'
   });
 
   private readonly maxSize: number;

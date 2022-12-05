@@ -102,7 +102,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
     this.getTrackingId().then(() => this.touchSession());
-    this.worker = new PersistentQueue(queueSize || 100, flushInterval || 60000);
+    this.worker = new PersistentQueue(queueSize || 1000, flushInterval || 60000);
     this.setupWorker();
   }
 

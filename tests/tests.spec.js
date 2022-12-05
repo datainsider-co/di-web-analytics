@@ -1,8 +1,3 @@
-const sleep = function(timeMills) {
-  // eslint-disable-next-line no-undef
-  return new Promise(resolve => setTimeout(resolve, timeMills));
-}
-
 describe('testing the client', function() {
   const apiKey = 'di_api_fee7c944-8f41-4d2c-b2fc-4900368c18a9';
   const host = 'http://cdp-di.ddns.net';
@@ -67,7 +62,6 @@ describe('testing the client', function() {
       'small_type',
       12,
       'fridge',
-      'https://datainsider.co/product/product_1',
       'product_type_1',
       'variant_1',
       'variant_frige_1',
@@ -85,7 +79,6 @@ describe('testing the client', function() {
       'small_type',
       12,
       'fridge',
-      'https://datainsider.co/product/product_1',
       'product_type_1',
       'variant_1',
       'variant_frige_1',

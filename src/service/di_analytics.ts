@@ -64,7 +64,7 @@ export class DiAnalytics {
     }
   }
 
-  static async enterScreen(name: string, properties: Properties = {}): Promise<void> {
+  static async enterScreen(name: string, properties: EventProperties = {}): Promise<void> {
     try {
       await this.getInstance().touchSession();
       await this.getInstance().enterScreen(name, properties);
@@ -158,7 +158,6 @@ export class DiAnalytics {
     productType: string,
     quantity: number,
     productTitle?: string,
-    productUrl?: string,
     variationId?: string,
     variationTitle?: string,
     vendor?: string,
@@ -174,7 +173,6 @@ export class DiAnalytics {
       product_type: productType,
       quantity: quantity,
       product_title: productTitle,
-      product_url: productUrl,
       variation_id: variationId,
       variation_title: variationTitle,
       vendor: vendor,
@@ -192,7 +190,6 @@ export class DiAnalytics {
     productType: string,
     quantity: number,
     productTitle: string,
-    productUrl: string,
     variationId: string,
     variationTitle: string,
     vendor: string,
@@ -208,7 +205,6 @@ export class DiAnalytics {
       product_type: productType,
       quantity: quantity,
       product_title: productTitle,
-      product_url: productUrl,
       variation_id: variationId,
       variation_title: variationTitle,
       vendor: vendor,
@@ -218,7 +214,7 @@ export class DiAnalytics {
   }
 
   static async checkout(
-    productId: string,
+    checkoutId: string,
     quantity: number,
     currency: string,
     totalPrice: number,
@@ -230,7 +226,7 @@ export class DiAnalytics {
     properties?: Properties
   ): Promise<void> {
     await this.track(SystemEvents.Checkout, {
-      product_id: productId,
+      checkout_id: checkoutId,
       quantity: quantity,
       currency: currency,
       total_price: totalPrice,

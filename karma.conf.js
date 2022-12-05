@@ -4,6 +4,7 @@ module.exports = function (config) {
     frameworks: ['mocha', 'chai'],
     files: [
       'dist/index.js',
+      'tests/base_test_function.js',
       {pattern: 'tests/**/*.spec.js', included: true},
     ],
     reporters: ['progress'],
