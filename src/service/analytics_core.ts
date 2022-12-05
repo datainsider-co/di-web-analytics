@@ -90,7 +90,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   private lastScreenName?: string;
 
   private readonly stopwatch: Stopwatch = StopwatchFactory.createStopwatch();
-  private readonly worker: PersistentQueue = new PersistentQueue();
+  private readonly worker: PersistentQueue
 
 
   constructor(properties: Properties) {
@@ -102,6 +102,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
     this.getTrackingId().then(() => this.touchSession());
+    this.worker = new PersistentQueue(properties.queueSize || 100, properties.flushInterval || 60000);
     this.setupWorker();
   }
 

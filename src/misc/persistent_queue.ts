@@ -12,7 +12,7 @@ export class PersistentQueue {
   });
 
   private readonly maxSize: number;
-  private readonly timePersistent: number;
+  private readonly flushInterval: number;
   private readonly eventChannel = this.queue.create('event-track-channel');
   private readonly mutex = new Mutex();
   private events: Event[] = [];
@@ -20,11 +20,11 @@ export class PersistentQueue {
 
   /**
    * @param queueSize max size để chờ persist xuống storage
-   * @param timePersistent thời gian max để chờ persist, tính theo millis
+   * @param flushInterval thời gian max để chờ persist, tính theo millis
    */
-  constructor(queueSize = 100, timePersistent = 60000) {
+  constructor(queueSize = 100, flushInterval = 60000) {
     this.maxSize = queueSize;
-    this.timePersistent = timePersistent;
+    this.flushInterval = flushInterval;
 
     this.start();
   }
@@ -105,6 +105,6 @@ export class PersistentQueue {
       } finally {
         releaser();
       }
-    }, this.timePersistent);
+    }, this.flushInterval);
   }
 }

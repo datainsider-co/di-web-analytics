@@ -162,7 +162,7 @@ describe('URL Parser', () => {
     const url = "https://rocket-bi.ddns.net?utm_source=google&utm_medium=banner";
     const campaign = AnalyticsUtils.getCampaignInfo(url);
     console.log('campaign', campaign);
-    expect(campaign.utm_campaign).is.undefined;
+    expect(campaign.utm_campaign).be.true;
     expect(campaign.utm_content).is.undefined;
     expect(campaign.utm_id).is.undefined;
     expect(campaign.utm_medium).equal("banner");

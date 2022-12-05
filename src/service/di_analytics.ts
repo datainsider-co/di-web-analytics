@@ -1,4 +1,4 @@
-import {CustomerProperties, Properties, SystemEvents} from '../domain';
+import {CustomerProperties, EventProperties, Properties, SystemEvents} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
@@ -100,7 +100,7 @@ export class DiAnalytics {
     }
   }
 
-  static async track(eventName: string, properties: Properties = {}): Promise<any> {
+  static async track(eventName: string, properties: EventProperties = {}): Promise<any> {
     try {
       await this.getInstance().touchSession();
       await this.getInstance().track(eventName, {
