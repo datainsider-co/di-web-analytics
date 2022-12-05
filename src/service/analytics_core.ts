@@ -93,7 +93,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
   private readonly worker: PersistentQueue
 
 
-  constructor(properties: Properties) {
+  constructor(properties: Properties, queueSize?: number, flushInterval?: number) {
     super();
     const props = {
       ...DataManager.getGlobalProperties(),
@@ -102,7 +102,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
     this.getTrackingId().then(() => this.touchSession());
-    this.worker = new PersistentQueue(properties.queueSize || 100, properties.flushInterval || 60000);
+    this.worker = new PersistentQueue(queueSize || 100, flushInterval || 60000);
     this.setupWorker();
   }
 

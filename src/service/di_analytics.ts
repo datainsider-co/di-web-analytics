@@ -27,8 +27,10 @@ export class DiAnalytics {
    * @param apiKey
    * @param properties
    * @param isDisable
+   * @param queueSize
+   * @param flushInterval
    */
-  static init(host: string, apiKey: string, properties?: Properties, isDisable?: boolean): void {
+  static init(host: string, apiKey: string, properties?: Properties, isDisable?: boolean, queueSize?: number, flushInterval?: number): void {
     if (isDisable ?? false) {
       this.instance = new DisableAnalyticsCore();
     } else {
@@ -37,7 +39,7 @@ export class DiAnalytics {
       .setValue('host', host);
       DataManager.setTrackingHost(host);
       DataManager.setTrackingApiKey(apiKey);
-      this.instance = new AnalyticsCore(properties || {});
+      this.instance = new AnalyticsCore(properties || {}, queueSize, flushInterval);
     }
   }
 

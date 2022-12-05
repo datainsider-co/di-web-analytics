@@ -36,7 +36,7 @@ describe('Test tracking service', () => {
     const events: Event[] = [];
     for (let i = 1; i < 10; i++) {
       const properties = {
-        di_event_name: 'tracking_testing_' + i,
+        di_event_name: 'tracking_testing',
         di_screen_name: 'test_screen_' + i,
         di_timestamp: Date.now(),
         ...defaultProperties

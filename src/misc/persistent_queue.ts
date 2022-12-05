@@ -23,6 +23,7 @@ export class PersistentQueue {
    * @param flushInterval thời gian max để chờ persist, tính theo millis
    */
   constructor(queueSize = 100, flushInterval = 60000) {
+    Logger.info("init PersistentQueue", {queueSize, flushInterval});
     this.maxSize = queueSize;
     this.flushInterval = flushInterval;
 

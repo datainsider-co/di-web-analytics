@@ -11,7 +11,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
-    "test:browser": "karma start --single-run --browsers Chrome,ChromeHeadless karma.conf.js",
+    "test:browser": "karma start --single-run --browsers ChromeHeadless karma.conf.js",
     "build": "rm -rf dist && tsc",
     "dev": "webpack --config webpack.config.js --watch"
   },

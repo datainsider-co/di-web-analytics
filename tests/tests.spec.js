@@ -1,19 +1,23 @@
+const sleep = function(timeMills) {
+  // eslint-disable-next-line no-undef
+  return new Promise(resolve => setTimeout(resolve, timeMills));
+}
+
 describe('testing the client', function() {
   const apiKey = 'di_api_fee7c944-8f41-4d2c-b2fc-4900368c18a9';
   const host = 'http://cdp-di.ddns.net';
   const DiAnalytics = window.DiAnalytics;
   const expect = window.chai.expect;
+  this.timeout(10000);
 
   it('should init client must success', function() {
     expect(!!DiAnalytics).is.true;
-    DiAnalytics.init(host, apiKey, {
-      queueSize: 10,
-      flushInterval: 1000
-    });
+
+    DiAnalytics.init(host, apiKey, {}, false, 50, 1000);
   });
 
   it('should change log level', () => {
-    DiAnalytics.setLoggerLevel(0);
+    DiAnalytics.setLoggerLevel(3);
   });
 
   it('should track event success', async () => {
@@ -71,4 +75,62 @@ describe('testing the client', function() {
     );
     expect(trackResult).is.undefined;
   });
+  it("track remove from cart success", async () => {
+    const trackResult = await DiAnalytics.removeFromCart(
+      'https://datainsider.co/product/product_1',
+      'VND',
+      'https://datainsider.co/product/product_1.png',
+      '1000',
+      'product_1',
+      'small_type',
+      12,
+      'fridge',
+      'https://datainsider.co/product/product_1',
+      'product_type_1',
+      'variant_1',
+      'variant_frige_1',
+      undefined
+    );
+    expect(trackResult).is.undefined;
+  });
+  it("track checkout success", async () => {
+    const trackResult = await DiAnalytics.checkout(
+      'product_1',
+      1,
+      'VND',
+      1200000,
+      ['product_1', 'product_2', 'product_3'],
+      ['fridge', 'kitchen', 'dog'],
+      [],
+      [],
+      'https://datainsider.co/product/product_1/checkout',
+    )
+    expect(trackResult).is.undefined;
+  })
+  it("track return order", async () => {
+    const trackResult = await DiAnalytics.returnOrder(
+      'checkout_id_1',
+      'i want to return this product',
+      {
+        di_duration: 1000,
+      }
+    );
+    expect(trackResult).is.undefined;
+  })
+  it("track cancel order", async () => {
+    const trackResult = await DiAnalytics.cancelOrder(
+      'checkout_id_1',
+      'i want to return this product',
+      {
+        di_duration: 1000,
+      }
+    );
+    expect(trackResult).is.undefined;
+  })
+
+
+  it("wait for test send data", async () => {
+    await sleep(5000)
+  });
+
 })
