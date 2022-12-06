@@ -1,7 +1,6 @@
 import Bowser from 'bowser';
 import {Properties} from '../domain/properties';
-import {EventColumnIds} from '../domain/system_events';
-import {CampaignInfo} from '@/domain';
+import {CampaignInfo, EventProperties} from '../domain';
 
 export enum SearchEngine {
   GOOGLE = 'google',
@@ -64,21 +63,21 @@ export default class AnalyticsUtils {
   static readonly QUERY_PARAM_REGEXP = new RegExp('[\\?&]?(\\w+)=([^&#]*)', 'g');
 
 
-  static buildPageAndReferrerInfo(currentUrl?: string, referrerUrl?: string): Properties {
+  static buildPageAndReferrerInfo(currentUrl?: string, referrerUrl?: string): EventProperties {
     const url = new URL(currentUrl ?? window.document.URL);
-    const properties = {} as Properties;
+    const properties: EventProperties = {};
 
-    properties[EventColumnIds.URL] = url.href;
-    properties[EventColumnIds.PATH] = `${url.hostname}${url.pathname}`;
-    properties[EventColumnIds.QUERY_PARAMS] = AnalyticsUtils.getQueryParamsAsJson(url.search);
+    properties.di_url = url.href;
+    properties.di_path = `${url.hostname}${url.pathname}`;
+    properties.di_url_params = AnalyticsUtils.getQueryParamsAsJson(url.search);
 
     if (referrerUrl ?? window.document.referrer) {
       const referrer = new URL(referrerUrl ?? window.document.referrer);
-      properties[EventColumnIds.REFERRER_HOST] = referrer.host;
-      properties[EventColumnIds.REFERRER] = referrer.href;
-      properties[EventColumnIds.REFERRER_SEARCH_ENGINE] = AnalyticsUtils.getSearchEngine(referrer.href);
-      properties[EventColumnIds.SEARCH_ENGINE_KEYWORD] = AnalyticsUtils.getSearchKeyword(referrer.href);
-      properties[EventColumnIds.REFERRER_QUERY_PARAMS] = AnalyticsUtils.getQueryParamsAsJson(referrer.search);
+      properties.di_referrer_host = referrer.host;
+      properties.di_referrer = referrer.href;
+      properties.di_referrer_search_engine = AnalyticsUtils.getSearchEngine(referrer.href);
+      properties.di_referrer_search_keyword = AnalyticsUtils.getSearchKeyword(referrer.href);
+      properties.di_referrer_params = AnalyticsUtils.getQueryParamsAsJson(referrer.search);
     }
     const campaignInfo = AnalyticsUtils.getCampaignInfo(url.href);
 
@@ -88,20 +87,20 @@ export default class AnalyticsUtils {
     };
   }
 
-  static buildClientSpecifications(): Properties {
+  static buildClientSpecifications(): EventProperties {
     const devicePlatform = AnalyticsUtils.getDevicePlatform(navigator.userAgent);
     const deviceOS = AnalyticsUtils.getOS(navigator.userAgent);
     const deviceBrowser = AnalyticsUtils.getBrowser(navigator.userAgent);
 
-    const properties: Properties = {};
+    const properties: EventProperties = {
+      device_name: devicePlatform.type,
+      device_version: devicePlatform.model,
+      os_name: deviceOS.name,
+      os_version: deviceOS.version,
+      platform_name: deviceBrowser.name,
+      platform_version: deviceBrowser.version
+    };
 
-    properties[EventColumnIds.DEVICE_NAME] = devicePlatform.type;
-    properties[EventColumnIds.DEVICE_VERSION] = devicePlatform.model;
-    properties[EventColumnIds.OS] = deviceOS.name;
-    properties[EventColumnIds.OS_VERSION] = deviceOS.version;
-
-    properties[EventColumnIds.PLATFORM] = deviceBrowser.name;
-    properties[EventColumnIds.PLATFORM_VERSION] = deviceBrowser.version;
     // properties[EventColumnIds.BROWSER_VERSION] = deviceBrowser.version;
 
     // properties[EventColumnIds.BROWSER] = deviceBrowser.name;

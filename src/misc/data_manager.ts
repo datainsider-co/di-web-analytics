@@ -1,5 +1,4 @@
 import {Properties as Properties} from '../domain';
-import MiniJson from 'mini-json';
 
 export class DataManager {
   static readonly TRACKING_API_KEY = 'di_tracking_api_key';
@@ -38,14 +37,14 @@ export class DataManager {
   }
 
   static setGlobalProperties(properties: Properties): void {
-    const json = MiniJson.toJson(properties);
-    localStorage.setItem(DataManager.GLOBAL_PROPERTIES, json);
+    const jsonAsString: string = JSON.stringify(properties);
+    localStorage.setItem(DataManager.GLOBAL_PROPERTIES, jsonAsString);
   }
 
   static getGlobalProperties(): Properties {
-    const raw = localStorage.getItem(DataManager.GLOBAL_PROPERTIES);
-    if (raw) {
-      return MiniJson.fromJson(raw);
+    const jsonAsString = localStorage.getItem(DataManager.GLOBAL_PROPERTIES);
+    if (jsonAsString) {
+      return JSON.parse(jsonAsString);
     } else {
       return {};
     }
@@ -53,18 +52,6 @@ export class DataManager {
 
   static deleteGlobalProperties() {
     localStorage.removeItem(DataManager.GLOBAL_PROPERTIES);
-  }
-
-  static getTrackingId(): string | undefined {
-    return localStorage.getItem(DataManager.TRACKING_ID) || void 0;
-  }
-
-  static setTrackingId(trackId: string) {
-    localStorage.setItem(DataManager.TRACKING_ID, trackId);
-  }
-
-  static deleteTrackingId() {
-    localStorage.removeItem(DataManager.TRACKING_ID);
   }
 
   static setUserId(userId: string): void {
