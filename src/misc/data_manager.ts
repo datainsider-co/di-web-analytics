@@ -1,4 +1,4 @@
-import {Properties as Properties} from '../domain';
+import {Event, Properties as Properties} from '../domain';
 
 export class DataManager {
   static readonly TRACKING_API_KEY = 'di_tracking_api_key';
@@ -6,6 +6,7 @@ export class DataManager {
   static readonly TRACKING_ID = 'di_tracking_id';
   static readonly USER_ID = 'di_tracking_user_id';
   static readonly GLOBAL_PROPERTIES = 'di_tracking_global_properties';
+  static readonly EVENTS = 'di_events';
 
   static reset() {
     this.deleteUserId();
@@ -64,5 +65,23 @@ export class DataManager {
 
   static deleteUserId() {
     localStorage.removeItem(DataManager.USER_ID);
+  }
+
+  static saveTemporaryEvents(events: Event[]): void {
+    const jsonAsString: string = JSON.stringify(events);
+    localStorage.setItem(DataManager.EVENTS, jsonAsString);
+  }
+
+  static getTemporaryEvents(): Event[] {
+    const jsonAsString = localStorage.getItem(DataManager.EVENTS);
+    if (jsonAsString) {
+      return JSON.parse(jsonAsString);
+    } else {
+      return [];
+    }
+  }
+
+  static deleteTemporaryEvents(): void {
+    localStorage.removeItem(DataManager.EVENTS);
   }
 }
