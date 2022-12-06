@@ -1,6 +1,6 @@
 {
   "name": "di-web-analytics",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "description": "Data insider web analytics",
   "repository": {
     "type": "git",
@@ -11,6 +11,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
+    "test:browser": "karma start --single-run --browsers ChromeHeadless karma.conf.js",
     "build": "rm -rf dist && tsc",
     "dev": "webpack --config webpack.config.js --watch"
   },
@@ -25,6 +26,7 @@
     "@types/chai": "^4.2.11",
     "@types/lodash": "^4.14.157",
     "@types/mocha": "^5.2.4",
+    "@types/node": "^16.6.1",
     "@types/uuid": "^8.3.0",
     "chai": "^4.1.2",
     "create-ts-index": "^1.14.0",
@@ -33,27 +35,34 @@
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-vue": "^6.2.2",
+    "karma": "^6.4.1",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^3.1.1",
+    "karma-firefox-launcher": "^2.1.2",
+    "karma-ie-launcher": "^1.0.0",
+    "karma-mocha": "^2.0.1",
+    "karma-requirejs": "^1.1.0",
     "lodash": "^4.17.19",
     "mocha": "^8.0.1",
+    "mocha-loader": "^5.1.5",
     "postcss": "^8.3.6",
     "postcss-loader": "^6.1.1",
     "prettier": "^1.19.1",
+    "requirejs": "^2.3.6",
     "style-loader": "^3.2.1",
     "tcs": "^10.0.0",
     "ts-loader": "^9.2.5",
     "ts-node": "^8.10.2",
-    "typescript": "^4.3.5"
+    "typescript": "^4.9.3"
   },
   "dependencies": {
-    "@types/node": "^16.6.1",
-    "@types/uuid": "^8.3.0",
     "async-mutex": "^0.2.4",
     "axios": "^0.20.0",
     "bowser": "^2.11.0",
     "js-cookies": "^1.0.4",
     "mini-json": "^1.0.0",
     "storage-based-queue": "^1.2.6",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
     "webpack": "^5.50.0",
     "webpack-cli": "^4.8.0"
   }

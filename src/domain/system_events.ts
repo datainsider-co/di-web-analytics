@@ -1,47 +1,15 @@
 export enum SystemEvents {
-  SCREEN_ENTER = "di_screen_enter",
-  SCREEN_EXIT = "di_screen_exit",
-  PAGE_VIEW = "di_pageview",
-  SESSION_CREATED = "di_session_created",
-  SESSION_END = "di_session_end",
-  SET_USER = 'di_customers'
-}
+  ScreenEnter = 'di_screen_enter',
+  PageView = 'di_page_view',
+  SessionCreated = 'di_session_created',
+  SessionEnd = 'di_session_end',
+  AddCustomer = 'di_customers',
+  Search = 'di_search',
+  ViewProduct = 'di_view_product',
+  AddToCart = 'di_add_to_cart',
+  RemoveFromCart = 'di_remove_from_cart',
+  Checkout = 'di_checkout',
+  CancelOrder = 'di_cancel_order',
+  ReturnOrder = 'di_return_order',
 
-export class EventColumnIds {
-  static readonly EVENT_ID = "di_event_id"
-  static readonly EVENT_NAME = "di_event"
-  static readonly EVENT_DISPLAY_NAME = "di_event_display_name"
-  static readonly IS_SYSTEM_EVENT = "di_system_event"
-  static readonly LIB_PLATFORM = "di_lib_platform"
-  static readonly LIB_VERSION = "di_lib_version"
-  static readonly TRACKING_ID = "di_tracking_id"
-  static readonly SESSION_ID = "di_session_id"
-  static readonly DI_CUSTOMER_ID = "di_customer_id"
-  static readonly SCREEN_NAME = "di_screen_name"
-  static readonly CLIENT_IP = "di_client_ip"
-  static readonly URL = "di_url"
-  static readonly PATH = "di_path"
-  static readonly QUERY_PARAMS = "di_url_params"
-  static readonly REFERRER = "di_referrer"
-  static readonly REFERRER_HOST = "di_referrer_host"
-  static readonly REFERRER_QUERY_PARAMS = "di_referrer_params"
-  static readonly REFERRER_SEARCH_ENGINE = "di_referrer_search_engine"
-  static readonly SEARCH_ENGINE_KEYWORD = "di_referrer_search_keyword"
-  static readonly OS = "os_name"
-  static readonly OS_VERSION = "os_version"
-  static readonly OS_VERSION_NAME = "os_version_name"
-  static readonly BROWSER = "di_browser"
-  static readonly BROWSER_VERSION = "di_browser_version"
-  static readonly BROWSER_USER_AGENT = "di_browser_ua"
-  static readonly BROWSER_PREFERRED_LANG = "di_browser_preffered_lang"
-  static readonly BROWSER_LANGUAGES = "di_browser_languages"
-  static readonly PLATFORM = "platform_name"
-  static readonly DEVICE_NAME = "device_name"
-  static readonly DEVICE_VERSION = "device_version"
-  static readonly PLATFORM_MODEL = "di_platform_model"
-  static readonly PLATFORM_VERSION = "platform_version"
-  static readonly START_TIME = "di_start_time"
-  static readonly DURATION = "di_duration"
-  static readonly TIME = "di_timestamp"
-  static readonly TIME_MS = "di_time_ms"
 }

@@ -37,7 +37,7 @@ DiAnalytics.init('http://dev.datainsider.co', '649623fc-88a8-4cb3-ae45-73cadf659
 ```ts
 import DiAnalytics from 'di-web-analytics';
 
-DiAnalytics.track('login', { name: 'Lina Kunde', age: 24 })
+DiAnalytics.track('login', {name: 'Lina Kunde', age: 24})
 ```
 
 ### Build project with webpack
@@ -58,8 +58,16 @@ DiAnalytics.track('login', { name: 'Lina Kunde', age: 24 })
 
 ### Run test case
 
++ Unit test
+
 ```bash
 yarn test
+```
+
++ Automation test
+
+```bash
+yarn test:browser
 ```
 
 #### 🚀 Deploy

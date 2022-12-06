@@ -12,9 +12,9 @@ export class TrackingSessionManager {
   }
 
   static createSession(properties: Properties): [string, number, number] {
-    let sessionId = uuid();
-    let createdAt = Date.now();
-    let expiredAt = createdAt + LibConfig.sessionMaxInactiveDuration;
+    const sessionId = uuid();
+    const createdAt = Date.now();
+    const expiredAt = createdAt + LibConfig.sessionMaxInactiveDuration;
 
     const sessionInfo: TrackingSessionInfo = {
       sessionId: sessionId,
