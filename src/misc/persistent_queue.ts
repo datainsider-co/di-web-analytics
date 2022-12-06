@@ -3,6 +3,7 @@ import {Message, SubmitEventWorker} from './workers';
 import {Mutex} from 'async-mutex';
 import {Event, Properties} from '../domain';
 import {Logger} from '../service/logger';
+import {DataManager} from './data_manager';
 
 Queue.workers({SubmitEventWorker});
 
@@ -33,21 +34,29 @@ export class PersistentQueue {
   private start() {
     Logger.debug('PersistentQueue::start');
     this.eventChannel.start();
+    this.loadTempEvents();
     Logger.debug('PersistentQueue::start completed');
   }
 
-  async stop() {
-    const releaser = await this.mutex.acquire();
-
+  private async loadTempEvents(): Promise<void> {
     try {
-      const events = Array.from(this.events);
-      this.events = [];
-      await this.persist(events);
+      const events: Event[] = DataManager.getTemporaryEvents();
+      if (events.length > 0) {
+        await this.persist(events);
+        DataManager.deleteTemporaryEvents()
+      }
+    } catch (ex) {
+      Logger.error('loadTempEvents error', ex);
+    }
+
+  }
+
+  async stop() {
+    try {
+      DataManager.saveTemporaryEvents(this.events);
       this.eventChannel.stop();
     } catch (ex){
       Logger.error('PersistentQueue::stop error', ex);
-    } finally {
-      releaser();
     }
   }
 
