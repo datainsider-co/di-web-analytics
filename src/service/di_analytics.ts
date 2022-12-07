@@ -221,8 +221,8 @@ export class DiAnalytics {
       return this.track(SystemEvents.CheckoutProduct, {
         checkout_id: checkoutId,
         product_id: product.product_id,
-        product_title: product.product_title,
-        product_price: product.product_price,
+        name: product.title,
+        price: product.price,
         quantity: product.quantity,
         status: status,
         ...product.properties
@@ -240,7 +240,7 @@ export class DiAnalytics {
   ): Promise<void> {
     await this.track(SystemEvents.CheckoutOrder, {
       checkout_id: checkoutId,
-      totalPrice: totalPrice,
+      total_price: totalPrice,
       url: url,
       ...properties
     });

@@ -2,10 +2,10 @@ import {Properties} from './properties';
 
 export interface CheckoutProduct {
   product_id: string;
-  product_title: string;
-  product_category: string;
+  title: string;
+  category: string;
   quantity: number;
-  product_price: number;
+  price: number;
 
   properties?: Properties;
 }
