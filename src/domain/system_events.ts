@@ -8,8 +8,9 @@ export enum SystemEvents {
   ViewProduct = 'di_view_product',
   AddToCart = 'di_add_to_cart',
   RemoveFromCart = 'di_remove_from_cart',
-  Checkout = 'di_checkout',
+  CheckoutOrder = 'di_checkout',
   CancelOrder = 'di_cancel_order',
   ReturnOrder = 'di_return_order',
+  CheckoutProduct = 'di_checkout_product',
 
 }

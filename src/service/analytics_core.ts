@@ -259,6 +259,7 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     const systemProperties: EventProperties = {
       di_event_id: customProperties.di_event_id || uuidv4(),
       di_timestamp: customProperties.di_timestamp || Date.now(),
+      di_start_time: customProperties.di_start_time || Date.now(),
       di_customer_id: customProperties.di_customer_id || DataManager.getUserId(),
       di_session_id: customProperties.di_session_id || sessionInfo.sessionId,
       app_version: LibConfig.version,

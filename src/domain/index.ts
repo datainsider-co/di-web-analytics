@@ -18,3 +18,4 @@ export * from './system_events';
 export * from './tracking_session_info';
 export * from './transaction_properties';
 export * from './view_product_properties';
+export * from './product';
