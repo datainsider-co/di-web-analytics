@@ -215,15 +215,18 @@ export class DiAnalytics {
   static async trackCheckoutProducts(
     checkoutId: string,
     productList: CheckoutProduct[],
-    status: string,
+    status: Status,
   ): Promise<void> {
     productList.map((product) => {
-      const productProperties = Object.assign({}, product);
+      const productProperties = {...product};
       const customProperties = product.properties;
       delete productProperties.properties;
+      const productPrice = status === Status.Complete ? product.price : -product.price
+      const totalPrice = productPrice * productProperties.quantity;
       return this.track(SystemEvents.CheckoutProduct, {
         checkout_id: checkoutId,
         ...productProperties,
+        totalPrice: totalPrice,
         ...customProperties
       });
     })
