@@ -218,14 +218,13 @@ export class DiAnalytics {
     status: string,
   ): Promise<void> {
     productList.map((product) => {
+      const productProperties = Object.assign({}, product);
+      const customProperties = product.properties;
+      delete productProperties.properties;
       return this.track(SystemEvents.CheckoutProduct, {
         checkout_id: checkoutId,
-        product_id: product.product_id,
-        name: product.title,
-        price: product.price,
-        quantity: product.quantity,
-        status: status,
-        ...product.properties
+        ...productProperties,
+        ...customProperties
       });
     })
 

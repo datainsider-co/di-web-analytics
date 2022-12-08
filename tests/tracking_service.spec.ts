@@ -1,8 +1,7 @@
 import {expect} from 'chai';
 import TRACKING_SERVICE from '../src/service/tracking_service';
 import LibConfig from '../src/domain/config';
-import {Event, TransactionProperties} from '../src';
-import {ProductProperties} from '../src/domain/product_properties';
+import {Event} from '../src';
 
 describe('Test tracking service', () => {
   const apiKey = 'di_api_fee7c944-8f41-4d2c-b2fc-4900368c18a9';
@@ -34,11 +33,10 @@ describe('Test tracking service', () => {
 
   it('should multiTrack is success', async () => {
     const events: Event[] = [];
-    for (let i = 1; i < 10; i++) {
+    for (let i = 1; i <= 2; i++) {
       const properties = {
         di_event_name: 'tracking_testing',
         di_screen_name: 'test_screen_' + i,
-        di_timestamp: Date.now(),
         ...defaultProperties
       };
       events.push({name: `tracking_testing_${i}`, properties: properties});
@@ -63,29 +61,4 @@ describe('Test tracking service', () => {
     console.log('track user is success::', success);
     expect(success).true;
   });
-
-  it("should track transaction is success", async () => {
-    const transactionProperties: TransactionProperties = {
-      di_transaction_id: 'transaction-123456',
-      di_product_id: 'product_id_1',
-      di_customer_id: 'customer_id_1',
-      di_quantity: 10,
-      di_total_price: 100000,
-      di_product_price: 10000,
-      di_transaction_status: 'success',
-    }
-    const success = await TRACKING_SERVICE.track("di_transactions", transactionProperties)
-    console.log("track transaction is success::", success);
-  });
-
-  it("should track product is success", async () => {
-    const transactionProperties: ProductProperties = {
-      di_product_id: 'product_id_1',
-      di_product_price: 10000,
-      di_product_name: 'product_name_1',
-      di_product_category: 'product_category_1',
-    }
-    const success = await TRACKING_SERVICE.track("di_products", transactionProperties)
-    console.log("track transaction is success::", success);
-  })
 });
