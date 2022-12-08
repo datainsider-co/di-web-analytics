@@ -12,7 +12,7 @@ describe('Generate tracking data', function() {
   const DiAnalytics = window.DiAnalytics;
   const expect = window.chai.expect;
   this.timeout(600000); // 10 minutes
-  const startTime = Date.now() - 1000 * 60 * 60 * 24 * 60; // 60 days ago
+  const startTime = Date.now() - 1000 * 60 * 60 * 24 * 0; // 1 days ago
 
   const screenNames = [
     'login_screen',
@@ -58,28 +58,42 @@ describe('Generate tracking data', function() {
   const timestampWithSessionIdMap = {};
 
   function defaultProperties(screenName) {
-    const customerId = 'customer_' + nextInt(0, 100000);
-    const sessionId = `${customerId}_session_${nextInt(0, 1000)}`;
+    const customerId = 'customer_' + nextInt(0, 10000);
+    const sessionId = `${customerId}_session_${nextInt(0, 5)}`;
     const previousTimestamp = timestampWithSessionIdMap[sessionId] || startTime;
-    const currentTimestamp = previousTimestamp + nextInt(1000, 28800000); // 1s - 8 hours
+    const currentTimestamp = previousTimestamp + nextInt(1000, 1000 * 60 * 60 * 8); // 1s - 8 hours
     timestampWithSessionIdMap[sessionId] = currentTimestamp;
     return {
-      di_duration: nextInt(1000, 10000),
+      di_duration: nextInt(1000, 100000),
       di_screen_name: screenName || pickRandom(screenNames),
       di_customer_id: customerId,
       di_session_id: sessionId,
-      di_timestamp: currentTimestamp
+      di_start_time: currentTimestamp
     };
+  }
+
+  function generateProducts(checkoutId, productIds, screenName) {
+    return productIds.map((productId) => {
+      return {
+        checkout_id: checkoutId,
+        product_id: productId,
+        title: pickRandom(productNames),
+        category: pickRandom(productTypes),
+        quantity: nextInt(1, 50),
+        price: nextInt(1000, 10000),
+        properties: defaultProperties(screenName),
+      }
+    });
   }
 
   it('should init client must success', function() {
     expect(!!DiAnalytics).is.true;
 
-    DiAnalytics.init(host, apiKey, {}, false, 2000, 5000);
+    DiAnalytics.init(host, apiKey, {}, false, 800, 5000);
   });
 
   it('generate track enter screen', async () => {
-    const nItem = nextInt(10000, 100000);
+    const nItem = 100000;
     for (let i = 0; i < nItem; ++i) {
       const screenName = pickRandom(screenNames);
       await DiAnalytics.enterScreen(screenName, defaultProperties(screenName));
@@ -90,8 +104,7 @@ describe('Generate tracking data', function() {
     for (let i = 0; i < nItem; ++i) {
       const searchTerm = pickRandom(searchTerms);
 
-      const trackResult = await DiAnalytics.search(searchTerm,
-        defaultProperties('search_screen'));
+      const trackResult = await DiAnalytics.search(searchTerm, defaultProperties('search_screen'));
       expect(trackResult).is.undefined;
     }
   });
@@ -161,22 +174,17 @@ describe('Generate tracking data', function() {
     }
   });
   it('track checkout success', async () => {
-    const nItem = nextInt(10000, 60000);
+    const nItem = nextInt(10000, 50000);
     for (let i = 0; i < nItem; ++i) {
       const properties = defaultProperties('checkout_screen');
       const checkoutId = `checkout_${i + 1}`;
-      const productIds = [pickRandom(productIds), pickRandom(productIds)];
-      const productNames = [pickRandom(productNames), pickRandom(productNames)];
+      const currentProductIds = [pickRandom(productIds), pickRandom(productIds), pickRandom(productIds)];
+      const products = generateProducts(checkoutId, currentProductIds, 'checkout_screen');
       const trackResult = await DiAnalytics.checkout(
         checkoutId,
-        nextInt(1, 15),
-        'VND',
-        nextInt(1000, 100000),
-        productIds,
-        productNames,
-        [],
-        [],
-        `https://datainsider.co/product/${checkoutId}/checkout`,
+        nextInt(1, 100000),
+        `https://checkout.datainsider.co/${checkoutId}`,
+        products,
         properties
       );
       expect(trackResult).is.undefined;
@@ -185,11 +193,14 @@ describe('Generate tracking data', function() {
   it('track return order', async () => {
     const nItem = nextInt(10000, 10000);
     for (let i = 0; i < nItem; ++i) {
-      const checkoutId = `checkout_${nextInt(1000, 100000)}`;
+      const checkoutId = `checkout_${nextInt(1000, 80000)}`;
       const properties = defaultProperties('return_screen');
+      const currentProductIds = [pickRandom(productIds), pickRandom(productIds)];
+      const products = generateProducts(checkoutId, currentProductIds, 'return_screen');
       const trackResult = await DiAnalytics.returnOrder(
         checkoutId,
         pickRandom(returnReasons),
+        products,
         properties
       );
       expect(trackResult).is.undefined;
@@ -198,11 +209,14 @@ describe('Generate tracking data', function() {
   it('track cancel order', async () => {
     const nItem = nextInt(10000, 10000);
     for (let i = 0; i < nItem; ++i) {
-      const checkoutId = `checkout_${nextInt(1000, 800000)}`;
+      const checkoutId = `checkout_${nextInt(1000, 80000)}`;
       const properties = defaultProperties('cancel_screen');
+      const currentProductIds = [pickRandom(productIds), pickRandom(productIds)];
+      const products = generateProducts(checkoutId, currentProductIds, 'cancel_screen');
       const trackResult = await DiAnalytics.cancelOrder(
         checkoutId,
         pickRandom(cancelReasons),
+        products,
         properties
       );
       expect(trackResult).is.undefined;

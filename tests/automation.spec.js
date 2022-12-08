@@ -88,15 +88,21 @@ describe('testing the client', function() {
   });
   it("track checkout success", async () => {
     const trackResult = await DiAnalytics.checkout(
-      'product_1',
-      1,
-      'VND',
-      1200000,
-      ['product_1', 'product_2', 'product_3'],
-      ['fridge', 'kitchen', 'dog'],
-      [],
-      [],
-      'https://datainsider.co/product/product_1/checkout',
+      'checkout_1',
+      1000,
+      'https://product.com/product_1',
+      [
+        {
+          product_id: 'product_1',
+          title: 'fridge',
+          quantity: 10,
+          price: 2000,
+          category: 'product_type_1',
+          properties: {
+            variant: 'variant_1',
+          }
+        }
+      ],
     )
     expect(trackResult).is.undefined;
   })
@@ -104,6 +110,18 @@ describe('testing the client', function() {
     const trackResult = await DiAnalytics.returnOrder(
       'checkout_id_1',
       'i want to return this product',
+      [
+        {
+          product_id: 'product_1',
+          title: 'fridge',
+          quantity: 10,
+          price: 2000,
+          category: 'product_type_1',
+          properties: {
+            variant: 'variant_1',
+          }
+        }
+      ],
       {
         di_duration: 1000,
       }
@@ -114,6 +132,18 @@ describe('testing the client', function() {
     const trackResult = await DiAnalytics.cancelOrder(
       'checkout_id_1',
       'i want to return this product',
+      [
+        {
+          product_id: 'product_1',
+          title: 'fridge',
+          quantity: 10,
+          price: 2000,
+          category: 'product_type_1',
+          properties: {
+            variant: 'variant_1',
+          }
+        }
+      ],
       {
         di_duration: 1000,
       }
