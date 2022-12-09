@@ -12,7 +12,7 @@ describe('Generate tracking data', function() {
   const DiAnalytics = window.DiAnalytics;
   const expect = window.chai.expect;
   this.timeout(600000); // 10 minutes
-  const startTime = Date.now() - 1000 * 60 * 60 * 24 * 0; // 1 days ago
+  const startTime = Date.now() - 1000 * 60 * 60 * 24 * nextInt(1, 60);
 
   const screenNames = [
     'login_screen',
@@ -25,11 +25,22 @@ describe('Generate tracking data', function() {
     'fridge',
     'tv',
     'laptop',
+    'laptop',
+    'laptop',
     'phone',
+    'phone',
+    'phone',
+    'phone',
+    'watch',
     'watch',
     'camera',
     'headphone',
+    'headphone',
     'speaker',
+    'speaker',
+    'speaker',
+    'speaker',
+    'air conditioner',
     'air conditioner',
     'fan'];
   const searchTerms = [
@@ -38,17 +49,55 @@ describe('Generate tracking data', function() {
     'top product in week',
     'top product in day',
     'top product in hour',
-    ...productNames];
-  const productIds = Array.from({length: 100}, (index) => 'product_' + index);
-  const productTypes = ['large', 'medium', 'small'];
+    ...productNames
+  ];
+  const productIds = Array.from({length: 1000}, (index) => `product_${index}`);
+  const productCategories = [
+    'home appliance',
+    'home appliance',
+    'home appliance',
+    'home appliance',
+    'home appliance',
+    'electronics',
+    'electronics',
+    'electronics',
+    'electronics',
+    'electronics',
+    'fashion',
+    'fashion',
+    'health & beauty',
+    'sports & outdoors',
+    'sports & outdoors',
+    'baby & kids',
+    'furniture',
+    'furniture',
+    'furniture',
+    'furniture',
+    'furniture',
+    'furniture',
+    'furniture',
+    'automotive',
+    'toys & games',
+    'food & beverage',
+    'food & beverage',
+    'home & living',
+    'books & stationery',
+    'pets',
+    'others'
+  ];
   const returnReasons = [
     'not fit',
     'not good',
+    'not good',
+    'not good',
+    'not like',
     'not like',
     'not good quality',
     'not good color'];
   const cancelReasons = [
     'other',
+    'not fit',
+    'not fit',
     'not fit',
     'not good',
     'not like',
@@ -58,17 +107,35 @@ describe('Generate tracking data', function() {
   const timestampWithSessionIdMap = {};
 
   function defaultProperties(screenName) {
-    const customerId = 'customer_' + nextInt(0, 10000);
+    const customerId = 'customer_' + nextInt(0, 1000000);
     const sessionId = `${customerId}_session_${nextInt(0, 5)}`;
     const previousTimestamp = timestampWithSessionIdMap[sessionId] || startTime;
-    const currentTimestamp = previousTimestamp + nextInt(1000, 1000 * 60 * 60 * 8); // 1s - 8 hours
+    const currentTimestamp = previousTimestamp + nextInt(60000, 1000 * 60 * 60 * 8); // 60 - 8 hours
     timestampWithSessionIdMap[sessionId] = currentTimestamp;
     return {
       di_duration: nextInt(1000, 100000),
       di_screen_name: screenName || pickRandom(screenNames),
       di_customer_id: customerId,
       di_session_id: sessionId,
-      di_start_time: currentTimestamp
+      di_start_time: currentTimestamp,
+      utm_campaign: pickRandom([
+        'sales_t1',
+        'sales_t2',
+        'sales_t3',
+        'hot_fan',
+        'winter_sale',
+        'winter_sale',
+        'winter_sale',
+        undefined,
+        undefined]),
+      utm_source: pickRandom(
+        [
+          'facebook', 'google', 'google',
+          'google', 'twitter', 'instagram', undefined, undefined]),
+      utm_medium: pickRandom(
+        [
+          'organic', 'organic',
+          'organic', 'cpc', 'cpc', 'cpm', 'cpa', undefined, undefined])
     };
   }
 
@@ -78,11 +145,11 @@ describe('Generate tracking data', function() {
         checkout_id: checkoutId,
         product_id: productId,
         title: pickRandom(productNames),
-        category: pickRandom(productTypes),
+        category: pickRandom(productCategories),
         quantity: nextInt(1, 50),
         price: nextInt(1000, 10000),
-        properties: defaultProperties(screenName),
-      }
+        properties: defaultProperties(screenName)
+      };
     });
   }
 
@@ -93,14 +160,14 @@ describe('Generate tracking data', function() {
   });
 
   it('generate track enter screen', async () => {
-    const nItem = 100000;
+    const nItem = nextInt(10000, 20000);
     for (let i = 0; i < nItem; ++i) {
       const screenName = pickRandom(screenNames);
       await DiAnalytics.enterScreen(screenName, defaultProperties(screenName));
     }
   });
   it('track search product success', async () => {
-    const nItem = nextInt(10000, 70000);
+    const nItem = nextInt(20000, 40000);
     for (let i = 0; i < nItem; ++i) {
       const searchTerm = pickRandom(searchTerms);
 
@@ -109,7 +176,7 @@ describe('Generate tracking data', function() {
     }
   });
   it('track view product success', async () => {
-    const nItem = nextInt(10000, 90000);
+    const nItem = nextInt(10000, 30000);
     for (let i = 0; i < nItem; ++i) {
       const productId = pickRandom(productIds);
       const productName = pickRandom(productNames);
@@ -122,12 +189,12 @@ describe('Generate tracking data', function() {
     }
   });
   it('track add to cart success', async () => {
-    const nItem = nextInt(20000, 80000);
+    const nItem = nextInt(10000, 30000);
     for (let i = 0; i < nItem; ++i) {
       const properties = defaultProperties('cart_screen');
       const productId = pickRandom(productIds);
       const productName = pickRandom(productNames);
-      const productType = pickRandom(productTypes);
+      const productType = pickRandom(productCategories);
       const previousScreenName = pickRandom(screenNames);
       const trackResult = await DiAnalytics.addToCart(
         `https://datainsider.co/product/${productId}`,
@@ -148,12 +215,12 @@ describe('Generate tracking data', function() {
     }
   });
   it('track remove from cart success', async () => {
-    const nItem = nextInt(20000, 60000);
+    const nItem = nextInt(10000, 40000);
     for (let i = 0; i < nItem; ++i) {
       const properties = defaultProperties('cart_screen');
       const productId = pickRandom(productIds);
       const productName = pickRandom(productNames);
-      const productType = pickRandom(productTypes);
+      const productType = pickRandom(productCategories);
       const previousScreenName = pickRandom(screenNames);
       const trackResult = await DiAnalytics.removeFromCart(
         `https://datainsider.co/product/${productId}`,
@@ -174,12 +241,16 @@ describe('Generate tracking data', function() {
     }
   });
   it('track checkout success', async () => {
-    const nItem = nextInt(10000, 50000);
+    const nItem = nextInt(5000, 30000);
     for (let i = 0; i < nItem; ++i) {
       const properties = defaultProperties('checkout_screen');
-      const checkoutId = `checkout_${i + 1}`;
-      const currentProductIds = [pickRandom(productIds), pickRandom(productIds), pickRandom(productIds)];
-      const products = generateProducts(checkoutId, currentProductIds, 'checkout_screen');
+      const checkoutId = `checkout_${nextInt(i, 1000000)}`;
+      const currentProductIds = [
+        pickRandom(productIds),
+        pickRandom(productIds),
+        pickRandom(productIds)];
+      const products = generateProducts(checkoutId, currentProductIds,
+        'checkout_screen');
       const trackResult = await DiAnalytics.checkout(
         checkoutId,
         nextInt(1, 100000),
@@ -191,12 +262,15 @@ describe('Generate tracking data', function() {
     }
   });
   it('track return order', async () => {
-    const nItem = nextInt(10000, 10000);
+    const nItem = nextInt(5000, 10000);
     for (let i = 0; i < nItem; ++i) {
-      const checkoutId = `checkout_${nextInt(1000, 80000)}`;
+      const checkoutId = `checkout_${nextInt(i, 80000)}`;
       const properties = defaultProperties('return_screen');
-      const currentProductIds = [pickRandom(productIds), pickRandom(productIds)];
-      const products = generateProducts(checkoutId, currentProductIds, 'return_screen');
+      const currentProductIds = [
+        pickRandom(productIds),
+        pickRandom(productIds)];
+      const products = generateProducts(checkoutId, currentProductIds,
+        'return_screen');
       const trackResult = await DiAnalytics.returnOrder(
         checkoutId,
         pickRandom(returnReasons),
@@ -207,12 +281,15 @@ describe('Generate tracking data', function() {
     }
   });
   it('track cancel order', async () => {
-    const nItem = nextInt(10000, 10000);
+    const nItem = nextInt(1000, 8000);
     for (let i = 0; i < nItem; ++i) {
-      const checkoutId = `checkout_${nextInt(1000, 80000)}`;
+      const checkoutId = `checkout_${nextInt(i, 80000)}`;
       const properties = defaultProperties('cancel_screen');
-      const currentProductIds = [pickRandom(productIds), pickRandom(productIds)];
-      const products = generateProducts(checkoutId, currentProductIds, 'cancel_screen');
+      const currentProductIds = [
+        pickRandom(productIds),
+        pickRandom(productIds)];
+      const products = generateProducts(checkoutId, currentProductIds,
+        'cancel_screen');
       const trackResult = await DiAnalytics.cancelOrder(
         checkoutId,
         pickRandom(cancelReasons),

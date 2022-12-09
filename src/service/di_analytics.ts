@@ -227,6 +227,7 @@ export class DiAnalytics {
         checkout_id: checkoutId,
         ...productProperties,
         totalPrice: totalPrice,
+        status: status,
         ...customProperties
       });
     })
