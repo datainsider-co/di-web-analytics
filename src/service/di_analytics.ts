@@ -1,4 +1,4 @@
-import {CustomerProperties, EventProperties, Properties, SystemEvents} from '../domain';
+import {CheckoutProduct, CustomerProperties, EventProperties, Properties, Status, SystemEvents} from '../domain';
 import {DataManager} from '../misc/data_manager';
 import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
@@ -212,47 +212,60 @@ export class DiAnalytics {
       ...properties
     });
   }
+  static async trackCheckoutProducts(
+    checkoutId: string,
+    productList: CheckoutProduct[],
+    status: Status,
+  ): Promise<void> {
+    productList.map((product) => {
+      const productProperties = {...product};
+      const customProperties = product.properties;
+      delete productProperties.properties;
+      const productPrice = status === Status.Complete ? product.price : -product.price
+      const totalPrice = productPrice * productProperties.quantity;
+      return this.track(SystemEvents.CheckoutProduct, {
+        checkout_id: checkoutId,
+        ...productProperties,
+        totalPrice: totalPrice,
+        status: status,
+        ...customProperties
+      });
+    })
+
+  }
 
   static async checkout(
     checkoutId: string,
-    quantity: number,
-    currency: string,
     totalPrice: number,
-    productIds: string[],
-    productTitles: string[],
-    variantIds: string[],
-    vendorNames: string[],
     url: string,
+    productList: CheckoutProduct[],
     properties?: Properties
   ): Promise<void> {
-    await this.track(SystemEvents.Checkout, {
+    await this.track(SystemEvents.CheckoutOrder, {
       checkout_id: checkoutId,
-      quantity: quantity,
-      currency: currency,
       total_price: totalPrice,
-      product_ids: productIds,
-      product_titles: productTitles,
-      variant_ids: variantIds,
-      vendor_names: vendorNames,
       url: url,
       ...properties
     });
+    await this.trackCheckoutProducts(checkoutId, productList, Status.Complete);
   }
 
-  static async cancelOrder(checkoutId: string, reason: string, properties?: Properties): Promise<void> {
+  static async cancelOrder(checkoutId: string, reason: string, productList: CheckoutProduct[], properties?: Properties): Promise<void> {
     await this.track(SystemEvents.CancelOrder, {
       checkout_id: checkoutId,
       reason: reason,
       ...properties
     });
+    await this.trackCheckoutProducts(checkoutId, productList, Status.Cancel);
   }
 
-  static async returnOrder(checkoutId: string, reason: string, properties?: Properties): Promise<void> {
+  static async returnOrder(checkoutId: string, reason: string, productList: CheckoutProduct[], properties?: Properties): Promise<void> {
     await this.track(SystemEvents.ReturnOrder, {
       checkout_id: checkoutId,
       reason: reason,
       ...properties
     });
+    await this.trackCheckoutProducts(checkoutId, productList, Status.Return);
   }
 
   static notifyUsingCookies(title: string, message: string, allowLabel: string, declineLabel: string): void {
