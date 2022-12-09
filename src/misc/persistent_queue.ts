@@ -9,7 +9,9 @@ Queue.workers({SubmitEventWorker});
 
 export class PersistentQueue {
   private readonly queue = new Queue({
-    storage: 'indexeddb'
+    storage: 'indexeddb',
+    timeout: 500,
+    debug: false
   });
 
   private readonly maxSize: number;
