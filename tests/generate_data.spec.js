@@ -1,3 +1,9 @@
+/**
+ * random number between min and max
+ * @param min
+ * @param max
+ * @return {number}
+ */
 const nextInt = (min = 0, max = 1000) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
@@ -12,7 +18,9 @@ describe('Generate tracking data', function() {
   const DiAnalytics = window.DiAnalytics;
   const expect = window.chai.expect;
   this.timeout(600000); // 10 minutes
-  const startTime = Date.now() - 1000 * 60 * 60 * 24 * nextInt(1, 60);
+  function getStartTime() {
+    return Date.now() - 1000 * 60 * 60 * 24 * nextInt(0, 120); // 3 months
+  }
 
   const screenNames = [
     'login_screen',
@@ -105,19 +113,147 @@ describe('Generate tracking data', function() {
     'not good color'];
   // key is session id, value is timestamp
   const timestampWithSessionIdMap = {};
+  const firstNames = [
+    'John',
+    'Mary',
+    'Peter',
+    'Alice',
+    'Bob',
+    'Tom',
+    'Jerry',
+    'Mickey',
+    'Donald',
+    'Minnie',
+    'Goofy',
+    'Minnie',
+    'Donald',
+    'Tigger',
+    'Eeyore',
+    'Piglet',
+    'Pooh',
+    'Rabbit',
+    'Rafiki',
+    'Mufasa',
+    'Simba',
+    'Scar',
+    'Nala',
+    'Timon',
+    'Pumbaa',
+    'Zazu'
+  ]
+  const lastNames = [
+    'Smith',
+    'Brown',
+    'White',
+    'Black',
+    'Green',
+    'Red',
+    'Blue',
+    'Pink',
+    'Yellow',
+    'Orange',
+    'Purple',
+    'Gray',
+    'Gold',
+    'Silver',
+    'Diamond',
+    'Ruby',
+    'Sapphire',
+    'Emerald',
+    'Pearl',
+    'Amethyst',
+    'Topaz',
+    'Citrine',
+    'Garnet',
+    'Onyx',
+    'Jade',
+    'Quartz',
+    'Opal',
+    'Sugilite',
+    'Lapis',
+    'Malachite',
+    'Azurite',
+    'Agate',
+    'Tiger Eye',
+    'Sodalite',
+    'Carnelian',
+    'Chrysocolla',
+    'Turquoise',
+    'Aventurine',
+    'Jasper',
+    'Obsidian',
+    'Hematite',
+    'Chalcedony',
+    'Rhodonite',
+    'Iolite',
+    'Bloodstone',
+    'Hematite',
+    'Fluorite',
+    'Kunzite',
+    'Heliodor',
+    'Chrysoprase',
+    'Chrysoberyl',
+    'Coral',
+    'Moonstone',
+    'Goshenite',
+    'Beryl',
+    'Garnet',
+    'Spinel',
+    'Peridot',
+    'Tourmaline',
+    'Sapphire',
+    'Zircon',
+    'Alexandrite',
+    'Cubic Zirconia',
+    'Tanzanite',
+    'Sphene',
+    'Amber',
+    'Chrysoberyl',
+    'Coral',
+    'Moonstone',
+    'Goshenite',
+    'Beryl',
+    'Garnet',
+    'Spinel',
+    'Peridot',
+    'Tourmaline',
+    'Sapphire',
+    'Zircon',
+    'Alexandrite',
+    'Cubic Zirconia',
+    'Tanzanite',
+    'Sphene',
+    'Amber',
+    'Chrysoberyl',
+    'Coral',
+    'Moonstone',
+    'Goshenite',
+    'Beryl',
+    'Garnet',
+    'Spinel',
+    'Peridot',
+    'Tourmaline',
+    'Sapphire',
+    'Zircon',
+    'Alexandrite',
+    'Cubic Zirconia',
+    'Tanzanite',
+  ]
+
 
   function defaultProperties(screenName) {
-    const customerId = 'customer_' + nextInt(0, 1000000);
-    const sessionId = `${customerId}_session_${nextInt(0, 5)}`;
-    const previousTimestamp = timestampWithSessionIdMap[sessionId] || startTime;
+    const customer = generateCustomer(nextInt(0, 1000000));
+    const sessionId = `${customer.di_customer_id}_session_${nextInt(0, 5)}`;
+    const previousTimestamp = timestampWithSessionIdMap[sessionId] || getStartTime();
     const currentTimestamp = previousTimestamp + nextInt(60000, 1000 * 60 * 60 * 8); // 60 - 8 hours
     timestampWithSessionIdMap[sessionId] = currentTimestamp;
     return {
       di_duration: nextInt(1000, 100000),
       di_screen_name: screenName || pickRandom(screenNames),
-      di_customer_id: customerId,
+      di_customer_id: customer.di_customer_id,
       di_session_id: sessionId,
       di_start_time: currentTimestamp,
+      di_timestamp: currentTimestamp,
       utm_campaign: pickRandom([
         'sales_t1',
         'sales_t2',
@@ -135,7 +271,8 @@ describe('Generate tracking data', function() {
       utm_medium: pickRandom(
         [
           'organic', 'organic',
-          'organic', 'cpc', 'cpc', 'cpm', 'cpa', undefined, undefined])
+          'organic', 'cpc', 'cpc', 'cpm', 'cpa', undefined, undefined]),
+      ...customer
     };
   }
 
@@ -153,11 +290,30 @@ describe('Generate tracking data', function() {
     });
   }
 
+  function generateCustomer(id) {
+      const firstName = pickRandom(firstNames);
+      const lastName = pickRandom(lastNames);
+      const email = `${firstName}_${lastName}_${id}@gmail.com`.toLowerCase();
+      const birthday = new Date(nextInt(1980, 2010), nextInt(0, 11), nextInt(1, 28)); // 1980 - 2000
+      const customer = {
+        di_customer_id: `customer_${id}`,
+        di_customer_first_name: firstName,
+        di_customer_last_name: lastName,
+        di_customer_phone_number: `+84${nextInt(100000000, 999999999)}`,
+        di_customer_email: email,
+        di_customer_avatar_url: `https://randomuser.me/api/portraits/women/${nextInt(0, 99)}.jpg`,
+        di_customer_dob: birthday.getTime(),
+        di_customer_gender: nextInt(0, 1)
+      }
+      return customer;
+  }
+
   it('should init client must success', function() {
     expect(!!DiAnalytics).is.true;
 
-    DiAnalytics.init(host, apiKey, {}, false, 800, 5000);
+    DiAnalytics.init(host, apiKey, {}, false, 500, 1000);
   });
+
 
   it('generate track enter screen', async () => {
     const nItem = nextInt(10000, 20000);
