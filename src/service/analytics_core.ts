@@ -9,6 +9,7 @@ import {TrackingSessionManager} from '../misc/tracking_session_manager';
 import {TrackingSessionInfo} from '../domain/tracking_session_info';
 import {Mutex} from 'async-mutex';
 import {v4 as uuidv4} from 'uuid';
+import {Logger} from '@/service/logger';
 
 
 export abstract class BaseAnalyticsCore {
@@ -82,15 +83,14 @@ export class DisableAnalyticsCore extends BaseAnalyticsCore {
 
 export class AnalyticsCore extends BaseAnalyticsCore {
   private readonly mutex = new Mutex();
-
-  // private readonly url: string;
-  // private readonly trackingApiKey: string;
   private globalProperties: Properties;
 
   private lastScreenName?: string;
 
   private readonly stopwatch: Stopwatch = StopwatchFactory.createStopwatch();
   private readonly worker: PersistentQueue
+  // sudo identify
+  private sid: string;
 
 
   constructor(properties: Properties, queueSize?: number, flushInterval?: number) {
@@ -102,8 +102,25 @@ export class AnalyticsCore extends BaseAnalyticsCore {
     DataManager.setGlobalProperties(props);
     this.globalProperties = props;
     this.getTrackingId().then(() => this.touchSession());
-    this.worker = new PersistentQueue(queueSize || 1000, flushInterval || 60000);
+    this.sid = this.getOrCreateSId();
+    this.worker = new PersistentQueue(queueSize || 100, flushInterval || 5000);
     this.setupWorker();
+  }
+
+  private getOrCreateSId() {
+    try {
+      const sid = DataManager.getSID()
+      if (sid) {
+        return sid;
+      } else {
+        const newSID = uuidv4();
+        DataManager.setSID(newSID);
+        return newSID;
+      }
+    } catch (ex) {
+      Logger.error('initCustomerId::sid::failure', ex);
+      return '';
+    }
   }
 
   private setupWorker() {
@@ -196,15 +213,11 @@ export class AnalyticsCore extends BaseAnalyticsCore {
 
   //TODO: Send an event to server to resolve old events with this user id
   identify(customerId: string): void {
-    const oldUserId = DataManager.getUserId();
-    if (oldUserId && oldUserId.length !== 0 && oldUserId !== customerId) {
-      DataManager.reset();
-    }
     DataManager.setUserId(customerId);
   }
 
   setUserProfile(customerId: string, properties: CustomerProperties): Promise<void> {
-    DataManager.setUserId(customerId);
+    this.identify(customerId);
     const customerProperties: CustomerProperties = {
       ...properties,
       di_customer_id: customerId
@@ -260,7 +273,8 @@ export class AnalyticsCore extends BaseAnalyticsCore {
       di_event_id: customProperties.di_event_id || uuidv4(),
       di_timestamp: customProperties.di_timestamp || Date.now(),
       di_start_time: customProperties.di_start_time || Date.now(),
-      di_customer_id: customProperties.di_customer_id || DataManager.getUserId(),
+      di_customer_id: customProperties.di_customer_id || DataManager.getUserId() || this.sid,
+      di_customer_sid: customProperties.di_customer_sid || this.sid,
       di_session_id: customProperties.di_session_id || sessionInfo.sessionId,
       app_version: LibConfig.version,
       app_name: LibConfig.platform,

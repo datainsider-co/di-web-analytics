@@ -7,6 +7,7 @@ export class DataManager {
   static readonly USER_ID = 'di_tracking_user_id';
   static readonly GLOBAL_PROPERTIES = 'di_tracking_global_properties';
   static readonly EVENTS = 'di_events';
+  static readonly SID = 'di_sid';
 
   static reset() {
     this.deleteUserId();
@@ -83,5 +84,13 @@ export class DataManager {
 
   static deleteTemporaryEvents(): void {
     localStorage.removeItem(DataManager.EVENTS);
+  }
+
+  static getSID(): string | undefined {
+    return localStorage.getItem(DataManager.SID) || void 0;
+  }
+
+  static setSID(sid: string): void {
+    return localStorage.setItem(DataManager.SID, sid);
   }
 }
