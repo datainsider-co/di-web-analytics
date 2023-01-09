@@ -12,5 +12,8 @@ export enum SystemEvents {
   CancelOrder = 'cancel_order',
   ReturnOrder = 'return_order',
   CheckoutProduct = 'checkout_product',
+  Register = 'register',
+  Login = 'login',
+  Logout = 'logout',
 
 }
