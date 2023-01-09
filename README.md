@@ -15,6 +15,16 @@ npm i di-web-analytics
 ```bash
 yarn add di-web-analytics
 ```
+🔥 using CDN
+```html
+<script>
+  (function(a,b,c,d,e){var f={},g=[],h=function(m){return function(){var n={};n['funcName']=m,n['arguments']=arguments,g['push'](n);};},i=['init','setLoggerLevel','autoTrackDom','enterScreenStart','enterScreen','exitScreen','setGlobalConfig','time','track','identify','setUserProfile','viewProduct','search','register','login','logout','destroySession','addToCart','removeFromCart','trackCheckoutProducts','checkout','cancelOrder','returnOrder','notifyUsingCookies','reset'];for(var j=0x0;j<i['length'];j++){f[i[j]]=h(i[j]);}var k=b['createElement'](c),l=b['getElementsByTagName'](c)[0x0];k['async']=0x1,k['src']=d,l['parentNode']['insertBefore'](k,l),a['createDiAnalytics']=function(){return e=arguments,f;},k['onload']=function(){e&&(a['DiAnalytics']['init']['apply'](a['DiAnalytics'],e),g['forEach'](function(m){m['funcName']&&a['DiAnalytics'][m['funcName']]['apply'](a['DiAnalytics'],m['arguments']);}),a['diQueue']=[]);};}(window,document,'script','https://analytics.datainsider.co/static/js/di-web-analytics/0.8.5/index.js'));
+  window.DiAnalytics = window.createDiAnalytics(
+    'YOUR_API_HOST',
+    'YOUR_API_KEY',
+  );
+</script>
+```
 
 #### Init Tracking
 

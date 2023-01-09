@@ -1,8 +1,9 @@
 (function(window, document, tagName, libUrl, initOptions) {
   var diAnalytics = {};
+  var queue = [];
   var getFunctionPushToQueue = function(funcName) {
     return function() {
-      (window.diQueue = window.diQueue || []).push(
+      queue.push(
         {funcName: funcName, arguments: arguments});
     };
   };
@@ -20,6 +21,10 @@
     'setUserProfile',
     'viewProduct',
     'search',
+    'register',
+    'login',
+    'logout',
+    'destroySession',
     'addToCart',
     'removeFromCart',
     'trackCheckoutProducts',
@@ -27,7 +32,7 @@
     'cancelOrder',
     'returnOrder',
     'notifyUsingCookies',
-    'reset'
+    'reset',
   ];
   for (var index = 0; index < diFunctions.length; index++) {
     diAnalytics[diFunctions[index]] = getFunctionPushToQueue(diFunctions[index]);
@@ -43,8 +48,8 @@
   };
   newTag.onload = function() {
     if (initOptions) {
-      window.DiAnalytics['init'].apply(window.DiAnalytics, initOptions);
-      (window.diQueue || []).forEach(function(item) {
+      window.DiAnalytics.init.apply(window.DiAnalytics, initOptions);
+      queue.forEach(function(item) {
         if (item.funcName) {
           window.DiAnalytics[item.funcName].apply(window.DiAnalytics,
             item.arguments);
