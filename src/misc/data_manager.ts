@@ -11,7 +11,7 @@ export class DataManager {
 
   static reset() {
     this.deleteUserId();
-    this.deleteGlobalProperties();
+    // this.deleteGlobalProperties();
   }
 
   static setTrackingHost(url: string): void {

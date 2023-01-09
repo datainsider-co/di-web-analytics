@@ -13,13 +13,15 @@ const pickRandom = (arr) => {
 };
 
 describe('Generate tracking data', function() {
-  const apiKey = 'di_api_fee7c944-8f41-4d2c-b2fc-4900368c18a9';
-  const host = 'http://cdp-di.ddns.net';
+  const apiKey = 'di_api_486e270b-201c-4445-b55c-5cb333e41832';
+  const host = 'https://tvc12.datainsider.co';
+  // const apiKey = 'di_api_fee7c944-8f41-4d2c-b2fc-4900368c18a9';
+  // const host = 'http://cdp-di.ddns.net';
   const DiAnalytics = window.DiAnalytics;
   const expect = window.chai.expect;
   this.timeout(600000); // 10 minutes
   function getStartTime() {
-    return Date.now() - 1000 * 60 * 60 * 24 * nextInt(0, 120); // 3 months
+    return Date.now() - 1000 * 60 * 60 * 24 * 0; // 3 months
   }
 
   const screenNames = [
@@ -242,7 +244,7 @@ describe('Generate tracking data', function() {
 
 
   function defaultProperties(screenName) {
-    const customer = generateCustomer(nextInt(0, 1000000));
+    const customer = generateCustomer(nextInt(0, 10000));
     const sessionId = `${customer.di_customer_id}_session_${nextInt(0, 5)}`;
     const previousTimestamp = timestampWithSessionIdMap[sessionId] || getStartTime();
     const currentTimestamp = previousTimestamp + nextInt(60000, 1000 * 60 * 60 * 8); // 60 - 8 hours
@@ -315,96 +317,96 @@ describe('Generate tracking data', function() {
   });
 
 
-  it('generate track enter screen', async () => {
-    const nItem = nextInt(10000, 20000);
-    for (let i = 0; i < nItem; ++i) {
-      const screenName = pickRandom(screenNames);
-      await DiAnalytics.enterScreen(screenName, defaultProperties(screenName));
-    }
-  });
-  it('track search product success', async () => {
-    const nItem = nextInt(20000, 40000);
-    for (let i = 0; i < nItem; ++i) {
-      const searchTerm = pickRandom(searchTerms);
-
-      const trackResult = await DiAnalytics.search(searchTerm, defaultProperties('search_screen'));
-      expect(trackResult).is.undefined;
-    }
-  });
-  it('track view product success', async () => {
-    const nItem = nextInt(10000, 30000);
-    for (let i = 0; i < nItem; ++i) {
-      const productId = pickRandom(productIds);
-      const productName = pickRandom(productNames);
-      const productPrice = nextInt(100, 10000);
-      const previousScreenName = pickRandom(screenNames);
-
-      const trackResult = await DiAnalytics.viewProduct(productId, productName,
-        productPrice, previousScreenName, defaultProperties('product_screen'));
-      expect(trackResult).is.undefined;
-    }
-  });
-  it('track add to cart success', async () => {
-    const nItem = nextInt(10000, 30000);
-    for (let i = 0; i < nItem; ++i) {
-      const properties = defaultProperties('cart_screen');
-      const productId = pickRandom(productIds);
-      const productName = pickRandom(productNames);
-      const productType = pickRandom(productCategories);
-      const previousScreenName = pickRandom(screenNames);
-      const trackResult = await DiAnalytics.addToCart(
-        `https://datainsider.co/product/${productId}`,
-        'VND',
-        `https://datainsider.co/product/${productId}.png`,
-        nextInt(1000, 100000),
-        productId,
-        productType,
-        nextInt(1, 10),
-        productName,
-        undefined,
-        undefined,
-        undefined,
-        previousScreenName,
-        properties
-      );
-      expect(trackResult).is.undefined;
-    }
-  });
-  it('track remove from cart success', async () => {
-    const nItem = nextInt(10000, 40000);
-    for (let i = 0; i < nItem; ++i) {
-      const properties = defaultProperties('cart_screen');
-      const productId = pickRandom(productIds);
-      const productName = pickRandom(productNames);
-      const productType = pickRandom(productCategories);
-      const previousScreenName = pickRandom(screenNames);
-      const trackResult = await DiAnalytics.removeFromCart(
-        `https://datainsider.co/product/${productId}`,
-        'VND',
-        `https://datainsider.co/product/${productId}.png`,
-        nextInt(1000, 100000),
-        productId,
-        productType,
-        nextInt(1, 10),
-        productName,
-        undefined,
-        undefined,
-        undefined,
-        previousScreenName,
-        properties
-      );
-      expect(trackResult).is.undefined;
-    }
-  });
+  // it('generate track enter screen', async () => {
+  //   const nItem = nextInt(10000, 20000);
+  //   for (let i = 0; i < nItem; ++i) {
+  //     const screenName = pickRandom(screenNames);
+  //     await DiAnalytics.enterScreen(screenName, defaultProperties(screenName));
+  //   }
+  // });
+  // it('track search product success', async () => {
+  //   const nItem = nextInt(20000, 40000);
+  //   for (let i = 0; i < nItem; ++i) {
+  //     const searchTerm = pickRandom(searchTerms);
+  //
+  //     const trackResult = await DiAnalytics.search(searchTerm, defaultProperties('search_screen'));
+  //     expect(trackResult).is.undefined;
+  //   }
+  // });
+  // it('track view product success', async () => {
+  //   for (let i = 0; i < 50000; ++i) {
+  //     const productId = pickRandom(productIds);
+  //     const productName = pickRandom(productNames);
+  //     const productPrice = nextInt(100, 10000);
+  //     const previousScreenName = pickRandom(screenNames);
+  //
+  //     const trackResult = await DiAnalytics.viewProduct(productId, productName,
+  //       productPrice, previousScreenName, defaultProperties('product_screen'));
+  //     expect(trackResult).is.undefined;
+  //   }
+  // });
+  // it('track add to cart success', async () => {
+  //   for (let i = 0; i < 30000; ++i) {
+  //     const properties = defaultProperties('cart_screen');
+  //     const productId = pickRandom(productIds);
+  //     const productName = pickRandom(productNames);
+  //     const productType = pickRandom(productCategories);
+  //     const previousScreenName = pickRandom(screenNames);
+  //     const trackResult = await DiAnalytics.addToCart(
+  //       `https://datainsider.co/product/${productId}`,
+  //       'VND',
+  //       `https://datainsider.co/product/${productId}.png`,
+  //       nextInt(1000, 100000),
+  //       productId,
+  //       productType,
+  //       nextInt(1, 10),
+  //       productName,
+  //       undefined,
+  //       undefined,
+  //       undefined,
+  //       previousScreenName,
+  //       properties
+  //     );
+  //     expect(trackResult).is.undefined;
+  //   }
+  // });
+  // it('track remove from cart success', async () => {
+  //   for (let i = 0; i < 40000; ++i) {
+  //     const properties = defaultProperties('cart_screen');
+  //     const productId = pickRandom(productIds);
+  //     const productName = pickRandom(productNames);
+  //     const productType = pickRandom(productCategories);
+  //     const previousScreenName = pickRandom(screenNames);
+  //     const trackResult = await DiAnalytics.removeFromCart(
+  //       `https://datainsider.co/product/${productId}`,
+  //       'VND',
+  //       `https://datainsider.co/product/${productId}.png`,
+  //       nextInt(1000, 100000),
+  //       productId,
+  //       productType,
+  //       nextInt(1, 10),
+  //       productName,
+  //       undefined,
+  //       undefined,
+  //       undefined,
+  //       previousScreenName,
+  //       properties
+  //     );
+  //     expect(trackResult).is.undefined;
+  //   }
+  // });
   it('track checkout success', async () => {
-    const nItem = nextInt(5000, 30000);
-    for (let i = 0; i < nItem; ++i) {
+    for (let i = 0; i < nextInt(80000, 100000); ++i) {
       const properties = defaultProperties('checkout_screen');
       const checkoutId = `checkout_${nextInt(i, 1000000)}`;
       const currentProductIds = [
         pickRandom(productIds),
         pickRandom(productIds),
-        pickRandom(productIds)];
+        pickRandom(productIds),
+        pickRandom(productIds),
+        pickRandom(productIds),
+        pickRandom(productIds)
+      ];
       const products = generateProducts(checkoutId, currentProductIds,
         'checkout_screen');
       const trackResult = await DiAnalytics.checkout(
@@ -417,44 +419,42 @@ describe('Generate tracking data', function() {
       expect(trackResult).is.undefined;
     }
   });
-  it('track return order', async () => {
-    const nItem = nextInt(5000, 10000);
-    for (let i = 0; i < nItem; ++i) {
-      const checkoutId = `checkout_${nextInt(i, 80000)}`;
-      const properties = defaultProperties('return_screen');
-      const currentProductIds = [
-        pickRandom(productIds),
-        pickRandom(productIds)];
-      const products = generateProducts(checkoutId, currentProductIds,
-        'return_screen');
-      const trackResult = await DiAnalytics.returnOrder(
-        checkoutId,
-        pickRandom(returnReasons),
-        products,
-        properties
-      );
-      expect(trackResult).is.undefined;
-    }
-  });
-  it('track cancel order', async () => {
-    const nItem = nextInt(1000, 8000);
-    for (let i = 0; i < nItem; ++i) {
-      const checkoutId = `checkout_${nextInt(i, 80000)}`;
-      const properties = defaultProperties('cancel_screen');
-      const currentProductIds = [
-        pickRandom(productIds),
-        pickRandom(productIds)];
-      const products = generateProducts(checkoutId, currentProductIds,
-        'cancel_screen');
-      const trackResult = await DiAnalytics.cancelOrder(
-        checkoutId,
-        pickRandom(cancelReasons),
-        products,
-        properties
-      );
-      expect(trackResult).is.undefined;
-    }
-  });
+  // it('track return order', async () => {
+  //   for (let i = 0; i < 10000; ++i) {
+  //     const checkoutId = `checkout_${nextInt(i, 80000)}`;
+  //     const properties = defaultProperties('return_screen');
+  //     const currentProductIds = [
+  //       pickRandom(productIds),
+  //       pickRandom(productIds)];
+  //     const products = generateProducts(checkoutId, currentProductIds,
+  //       'return_screen');
+  //     const trackResult = await DiAnalytics.returnOrder(
+  //       checkoutId,
+  //       pickRandom(returnReasons),
+  //       products,
+  //       properties
+  //     );
+  //     expect(trackResult).is.undefined;
+  //   }
+  // });
+  // it('track cancel order', async () => {
+  //   for (let i = 0; i < 8000; ++i) {
+  //     const checkoutId = `checkout_${nextInt(i, 80000)}`;
+  //     const properties = defaultProperties('cancel_screen');
+  //     const currentProductIds = [
+  //       pickRandom(productIds),
+  //       pickRandom(productIds)];
+  //     const products = generateProducts(checkoutId, currentProductIds,
+  //       'cancel_screen');
+  //     const trackResult = await DiAnalytics.cancelOrder(
+  //       checkoutId,
+  //       pickRandom(cancelReasons),
+  //       products,
+  //       properties
+  //     );
+  //     expect(trackResult).is.undefined;
+  //   }
+  // });
 
   it('wait for test send data', async () => {
     await sleep(5000);

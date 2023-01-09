@@ -1,14 +1,16 @@
 import {CheckoutProduct, CustomerProperties, EventProperties, Properties, Status, SystemEvents} from '../domain';
 import {DataManager} from '../misc/data_manager';
-import {AnalyticsCore, BaseAnalyticsCore, DisableAnalyticsCore} from './analytics_core';
+import {AnalyticsCore} from './analytics_core';
+import {AnalyticsCoreImpl} from './analytics_core_impl';
+import {DisableAnalyticsCore} from './disable_analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
 import LibConfig from '../domain/config';
 import {Logger, LoggerLevel} from './logger';
 
 export class DiAnalytics {
-  private static instance: BaseAnalyticsCore;
+  private static instance: AnalyticsCore;
 
-  private static getInstance(): BaseAnalyticsCore {
+  private static getInstance(): AnalyticsCore {
     if (!this.instance) {
       const host = DataManager.getTrackingHost();
       const apiKey = DataManager.getTrackingApiKey();
@@ -39,7 +41,7 @@ export class DiAnalytics {
       .setValue('host', host);
       DataManager.setTrackingHost(host);
       DataManager.setTrackingApiKey(apiKey);
-      this.instance = new AnalyticsCore(properties || {}, queueSize, flushInterval);
+      this.instance = new AnalyticsCoreImpl(properties || {}, queueSize, flushInterval);
     }
   }
 
@@ -55,7 +57,7 @@ export class DiAnalytics {
   static autoTrackDom(cssSelector: string) {
   }
 
-  static async enterScreenStart(name: string): Promise<any> {
+  static async enterScreenStart(name: string): Promise<void> {
     try {
       await this.getInstance().touchSession();
       await this.getInstance().enterScreenStart(name);
@@ -102,7 +104,7 @@ export class DiAnalytics {
     }
   }
 
-  static async track(eventName: string, properties: EventProperties = {}): Promise<any> {
+  static async track(eventName: string, properties: EventProperties = {}): Promise<void> {
     try {
       await this.getInstance().touchSession();
       await this.getInstance().track(eventName, {
@@ -114,7 +116,7 @@ export class DiAnalytics {
     }
   }
 
-  static async identify(userId: string): Promise<any> {
+  static async identify(userId: string): Promise<void> {
     try {
       await this.getInstance().touchSession();
       await this.getInstance().identify(userId);
@@ -147,6 +149,30 @@ export class DiAnalytics {
       query: query,
       ...properties
     });
+  }
+
+  static async register(
+    customerInfo: CustomerProperties,
+    properties?: Properties,
+  ): Promise<void> {
+    await this.track(SystemEvents.Register, {
+      ...customerInfo,
+      ...properties
+    });
+  }
+
+  static async login(
+    customerInfo: CustomerProperties,
+    properties?: Properties,
+  ): Promise<void> {
+    await this.track(SystemEvents.Login, {
+      ...customerInfo,
+      ...properties
+    });
+  }
+
+  static async logout(properties?: Properties): Promise<void> {
+    await this.track(SystemEvents.Logout, properties);
   }
 
   static async addToCart(

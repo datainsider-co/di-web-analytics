@@ -1,6 +1,6 @@
 (function(window, document, tagName, libUrl, initOptions) {
   var diAnalytics = {};
-  var getPushToQueueFn = function(funcName) {
+  var getFunctionPushToQueue = function(funcName) {
     return function() {
       (window.diQueue = window.diQueue || []).push(
         {funcName: funcName, arguments: arguments});
@@ -30,7 +30,7 @@
     'reset'
   ];
   for (var index = 0; index < diFunctions.length; index++) {
-    diAnalytics[diFunctions[index]] = getPushToQueueFn(diFunctions[index]);
+    diAnalytics[diFunctions[index]] = getFunctionPushToQueue(diFunctions[index]);
   }
   var newTag = document.createElement(tagName);
   var firstTag = document.getElementsByTagName(tagName)[0];
