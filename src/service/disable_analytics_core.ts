@@ -25,10 +25,6 @@ export class DisableAnalyticsCore extends AnalyticsCore {
 
   setGlobalConfig(properties: Properties): void {
   }
-
-  reset(): void {
-  }
-
   time(event: string): void {
   }
 
@@ -41,6 +37,10 @@ export class DisableAnalyticsCore extends AnalyticsCore {
   }
 
   setUserProfile(userId: string, properties: CustomerProperties): Promise<any> {
+    return Promise.resolve(undefined);
+  }
+
+  destroySession(): Promise<void> {
     return Promise.resolve(undefined);
   }
 }

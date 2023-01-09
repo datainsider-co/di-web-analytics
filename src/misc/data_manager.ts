@@ -9,10 +9,11 @@ export class DataManager {
   static readonly EVENTS = 'di_events';
   static readonly SID = 'di_sid';
 
-  static reset() {
-    this.deleteUserId();
-    // this.deleteGlobalProperties();
-  }
+  // static reset() {
+  //   this.deleteUserId();
+  //   this.deleteSID();
+  //   // this.deleteGlobalProperties();
+  // }
 
   static setTrackingHost(url: string): void {
     localStorage.setItem(DataManager.TRACKING_URL, url);
@@ -92,5 +93,9 @@ export class DataManager {
 
   static setSID(sid: string): void {
     return localStorage.setItem(DataManager.SID, sid);
+  }
+
+  static deleteSID(): void {
+    localStorage.removeItem(DataManager.SID);
   }
 }

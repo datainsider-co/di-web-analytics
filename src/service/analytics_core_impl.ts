@@ -15,7 +15,6 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
 
   private readonly stopwatch: Stopwatch = StopwatchFactory.createStopwatch();
   private readonly worker: PersistentQueue;
-  private sid: string;
 
 
   constructor(customProperties: Properties, queueSize?: number, flushInterval?: number) {
@@ -26,20 +25,19 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
     };
     DataManager.setGlobalProperties(globalProperties);
     this.globalProperties = globalProperties;
-    this.sid = this.getOrCreateSId();
     this.worker = new PersistentQueue(queueSize || 100, flushInterval || 5000);
     this.setupWorker();
   }
 
   private getOrCreateSId() {
     try {
-      const sid = DataManager.getSID();
+      const sid: string | undefined = DataManager.getSID();
       if (sid) {
         return sid;
       } else {
-        const newSID = uuidv4();
-        DataManager.setSID(newSID);
-        return newSID;
+        const sid = uuidv4();
+        DataManager.setSID(sid);
+        return sid;
       }
     } catch (ex) {
       Logger.error('initCustomerId::sid::failure', ex);
@@ -54,12 +52,6 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
         await this.worker.stop();
       });
     });
-  }
-
-  reset() {
-    this.lastScreenName = '';
-    this.stopwatch.clear();
-    DataManager.reset();
   }
 
   getTrackingId(): string {
@@ -135,7 +127,6 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
     this.stopwatch.start(event);
   }
 
-  //TODO: Send an event to server to resolve old events with this user id
   identify(customerId: string): void {
     DataManager.setUserId(customerId);
   }
@@ -197,8 +188,8 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
       di_event_id: customProperties.di_event_id || uuidv4(),
       di_timestamp: customProperties.di_timestamp || Date.now(),
       di_start_time: customProperties.di_start_time || Date.now(),
-      di_customer_id: customProperties.di_customer_id || DataManager.getUserId() || this.sid,
-      di_customer_sid: customProperties.di_customer_sid || this.sid,
+      di_customer_id: customProperties.di_customer_id || DataManager.getUserId() || this.getOrCreateSId(),
+      di_customer_sid: customProperties.di_customer_sid || this.getOrCreateSId(),
       di_session_id: customProperties.di_session_id || sessionInfo.sessionId,
       app_version: LibConfig.version,
       app_name: LibConfig.platform,
@@ -219,7 +210,7 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
 
   private enrichScreenName(properties: Properties | EventProperties): void {
     if (!properties.di_screen_name) {
-      properties.di_screen_name = this.lastScreenName || window.document.location.pathname;
+      properties.di_screen_name = this.lastScreenName || window.document.title;
     }
   }
 
@@ -231,5 +222,24 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
     if (!properties.di_duration) {
       properties.di_duration = elapseDuration.duration || 0;
     }
+  }
+
+  async destroySession(): Promise<void> {
+    const releaser = await this.mutex.acquire();
+    try {
+      const sessionInfo = TrackingSessionManager.getSession();
+      await this.endSession(sessionInfo);
+      this.clearSessionData();
+    } finally {
+      releaser();
+    }
+  }
+
+  private clearSessionData() {
+    this.lastScreenName = '';
+    this.stopwatch.clear();
+    DataManager.deleteUserId();
+    DataManager.deleteSID();
+    TrackingSessionManager.deleteSession();
   }
 }

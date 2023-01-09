@@ -116,10 +116,10 @@ export class DiAnalytics {
     }
   }
 
-  static async identify(userId: string): Promise<void> {
+  static async identify(customerId: string): Promise<void> {
     try {
       await this.getInstance().touchSession();
-      await this.getInstance().identify(userId);
+      await this.getInstance().identify(customerId);
     } catch (ex) {
       Logger.error('DiAnalytics.identify failed', ex);
     }
@@ -155,24 +155,45 @@ export class DiAnalytics {
     customerInfo: CustomerProperties,
     properties?: Properties,
   ): Promise<void> {
-    await this.track(SystemEvents.Register, {
-      ...customerInfo,
-      ...properties
-    });
+    try {
+      await this.track(SystemEvents.Register, {
+        ...customerInfo,
+        ...properties
+      });
+    } catch (ex) {
+      Logger.error('DiAnalytics.register failed', ex);
+    }
   }
 
   static async login(
     customerInfo: CustomerProperties,
     properties?: Properties,
   ): Promise<void> {
-    await this.track(SystemEvents.Login, {
-      ...customerInfo,
-      ...properties
-    });
+    try {
+      await this.identify(customerInfo.id);
+      await this.track(SystemEvents.Login, {
+        ...customerInfo,
+        ...properties
+      });
+    } catch (ex) {
+      Logger.error('DiAnalytics.login failed', ex);
+    }
   }
 
   static async logout(properties?: Properties): Promise<void> {
-    await this.track(SystemEvents.Logout, properties);
+    try {
+      await this.track(SystemEvents.Logout, properties);
+    } catch (ex) {
+      Logger.error('DiAnalytics.logout failed', ex);
+    }
+  }
+
+  static async destroySession(): Promise<void> {
+    try {
+      await this.getInstance().destroySession();
+    } catch (ex) {
+      Logger.error('DiAnalytics.destroySession failed', ex);
+    }
   }
 
   static async addToCart(
@@ -298,9 +319,15 @@ export class DiAnalytics {
     NotifyUsingCookies.showBanner();
   }
 
-  static reset(): DiAnalytics {
-    this.getInstance().reset();
-    return this;
+  /**
+   * @deprecated use destroy destroy session instead
+   */
+  static async reset(): Promise<void> {
+    try {
+      await this.destroySession();
+    } catch (ex) {
+      Logger.debug('DiAnalytics.reset failed', ex);
+    }
   }
 }
 
