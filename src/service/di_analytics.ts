@@ -170,11 +170,11 @@ export class DiAnalytics {
     properties?: Properties,
   ): Promise<void> {
     try {
-      await this.identify(customerInfo.id);
       await this.track(SystemEvents.Login, {
         ...customerInfo,
         ...properties
       });
+      await this.identify(customerInfo.id);
     } catch (ex) {
       Logger.error('DiAnalytics.login failed', ex);
     }
