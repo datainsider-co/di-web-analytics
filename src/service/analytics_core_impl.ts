@@ -47,10 +47,8 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
 
   private setupWorker() {
 
-    document.addEventListener('readystatechange', event => {
-      window.addEventListener('beforeunload', async (event) => {
-        await this.worker.stop();
-      });
+    window.addEventListener('beforeunload', async (event) => {
+      await this.worker.stop();
     });
   }
 
