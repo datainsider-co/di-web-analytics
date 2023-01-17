@@ -6,16 +6,20 @@ import {DisableAnalyticsCore} from './disable_analytics_core';
 import NotifyUsingCookies from '../misc/notify_using_cookies';
 import LibConfig from '../domain/config';
 import {Logger, LoggerLevel} from './logger';
+import {StorageType} from '../misc';
 
 export class DiAnalytics {
   private static instance: AnalyticsCore;
 
-  private static getInstance(): AnalyticsCore {
+  static getInstance(): AnalyticsCore {
     if (!this.instance) {
       const host = DataManager.getTrackingHost();
       const apiKey = DataManager.getTrackingApiKey();
       if (host && apiKey) {
-        this.init(host, apiKey);
+        this.init({
+          host: host,
+          apiKey: apiKey
+        });
       } else {
         throw new Error('DiAnalytics: You have to call DiAnalytics.getInstance first.');
       }
@@ -24,24 +28,32 @@ export class DiAnalytics {
   }
 
   /**
-   * TODO: Clear additional data & queue... etc
-   * @param host current host for tracking service
-   * @param apiKey
-   * @param properties
-   * @param isDisable
-   * @param queueSize
-   * @param flushInterval
+   * @param data.host current host for tracking service
+   * @param data.apiKey api key for tracking service
+   * @param data.properties custom properties for tracking service
+   * @param data.isDisable disable tracking service
+   * @param data.bufferSize queue size for tracking service
+   * @param data.flushInterval interval flush events to server
+   * @param data.storageType storage type for cache events
    */
-  static init(host: string, apiKey: string, properties?: Properties, isDisable?: boolean, queueSize?: number, flushInterval?: number): void {
-    if (isDisable ?? false) {
+  static init(data: {
+    host: string;
+    apiKey: string;
+    properties?: Properties;
+    isDisable?: boolean;
+    bufferSize?: number;
+    flushInterval?: number;
+    storageType?: StorageType
+  }): void {
+    if (data.isDisable ?? false) {
       this.instance = new DisableAnalyticsCore();
     } else {
       LibConfig
-      .setValue('apiKey', apiKey)
-      .setValue('host', host);
-      DataManager.setTrackingHost(host);
-      DataManager.setTrackingApiKey(apiKey);
-      this.instance = new AnalyticsCoreImpl(properties || {}, queueSize, flushInterval);
+      .setValue('apiKey', data.apiKey)
+      .setValue('host', data.host);
+      DataManager.setTrackingHost(data.host);
+      DataManager.setTrackingApiKey(data.apiKey);
+      this.instance = new AnalyticsCoreImpl(data.properties || {}, data.storageType, data.bufferSize, data.flushInterval);
     }
   }
 
@@ -54,49 +66,50 @@ export class DiAnalytics {
   }
 
 
-  static autoTrackDom(cssSelector: string) {
+  static autoTrackDom(cssSelector: string): void {
+    throw Error('Not implemented');
   }
 
-  static async enterScreenStart(name: string): Promise<void> {
+  static enterScreenStart(name: string): void {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().enterScreenStart(name);
+      this.getInstance().touchSession();
+      this.getInstance().enterScreenStart(name);
     } catch (ex) {
       Logger.error('DiAnalytics.enterScreenStart failed', ex);
     }
   }
 
-  static async enterScreen(name: string, properties: EventProperties = {}): Promise<void> {
+  static enterScreen(name: string, properties: EventProperties = {}): void {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().enterScreen(name, properties);
+      this.getInstance().touchSession();
+      this.getInstance().enterScreen(name, properties);
     } catch (ex) {
       Logger.error('DiAnalytics.enterScreen failed', ex);
     }
   }
 
-  static async exitScreen(name: string, properties: Properties = {}): Promise<void> {
+  static exitScreen(name: string, properties: Properties = {}): void {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().exitScreen(name, properties);
+      this.getInstance().touchSession();
+      this.getInstance().exitScreen(name, properties);
     } catch (ex) {
       Logger.error('DiAnalytics.exitScreen failed', ex);
     }
   }
 
-  static async setGlobalConfig(properties: Properties): Promise<void> {
+  static setGlobalConfig(properties: Properties): void {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().setGlobalConfig(properties);
+      this.getInstance().touchSession();
+      this.getInstance().setGlobalConfig(properties);
     } catch (ex) {
       Logger.error('DiAnalytics.register failed', ex);
     }
   }
 
-  static async time(event: string): Promise<DiAnalytics> {
+  static time(event: string): DiAnalytics {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().time(event);
+      this.getInstance().touchSession();
+      this.getInstance().time(event);
       return this;
     } catch (ex) {
       Logger.error('DiAnalytics.time failed', ex);
@@ -104,38 +117,35 @@ export class DiAnalytics {
     }
   }
 
-  static async track(eventName: string, properties: EventProperties = {}): Promise<void> {
+  static track(eventName: string, properties: EventProperties = {}): void {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().track(eventName, {
-        di_event_name: eventName,
-        ...properties
-      });
+      this.getInstance().touchSession();
+      this.getInstance().track(eventName, properties);
     } catch (ex) {
       Logger.error('DiAnalytics.track failed', ex);
     }
   }
 
-  static async identify(customerId: string): Promise<void> {
+  static identify(customerId: string): void {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().identify(customerId);
+      this.getInstance().touchSession();
+      this.getInstance().identify(customerId);
     } catch (ex) {
       Logger.error('DiAnalytics.identify failed', ex);
     }
   }
 
-  static async setUserProfile(userId: string, properties: CustomerProperties = {}): Promise<void> {
+  static setUserProfile(customerId: string, properties: CustomerProperties = {}): void {
     try {
-      await this.getInstance().touchSession();
-      await this.getInstance().setUserProfile(userId, properties);
+      this.getInstance().touchSession();
+      this.getInstance().setUserProfile(customerId, properties);
     } catch (ex) {
       Logger.error('DiAnalytics.setUserProfile failed', ex);
     }
   }
 
-  static async viewProduct(id: string, name: string, price: number, source?: string, properties?: Properties): Promise<void> {
-    return this.track(SystemEvents.ViewProduct, {
+  static viewProduct(id: string, name: string, price: number, source?: string, properties?: Properties): void {
+    this.track(SystemEvents.ViewProduct, {
       product_id: id,
       product_name: name,
       product_price: price,
@@ -144,19 +154,19 @@ export class DiAnalytics {
     });
   }
 
-  static async search(query: string, properties?: Properties): Promise<void> {
-    return this.track(SystemEvents.Search, {
+  static search(query: string, properties?: Properties): void {
+    this.track(SystemEvents.Search, {
       query: query,
       ...properties
     });
   }
 
-  static async register(
+  static register(
     customerInfo: CustomerProperties,
-    properties?: Properties,
-  ): Promise<void> {
+    properties?: Properties
+  ): void {
     try {
-      await this.track(SystemEvents.Register, {
+      this.track(SystemEvents.Register, {
         ...customerInfo,
         ...properties
       });
@@ -165,38 +175,38 @@ export class DiAnalytics {
     }
   }
 
-  static async login(
+  static login(
     customerInfo: CustomerProperties,
-    properties?: Properties,
-  ): Promise<void> {
+    properties?: Properties
+  ): void {
     try {
-      await this.track(SystemEvents.Login, {
+      this.identify(customerInfo.di_customer_id!);
+      this.track(SystemEvents.Login, {
         ...customerInfo,
         ...properties
       });
-      await this.identify(customerInfo.id);
     } catch (ex) {
       Logger.error('DiAnalytics.login failed', ex);
     }
   }
 
-  static async logout(properties?: Properties): Promise<void> {
+  static logout(properties?: Properties): void {
     try {
-      await this.track(SystemEvents.Logout, properties);
+      this.track(SystemEvents.Logout, properties);
     } catch (ex) {
       Logger.error('DiAnalytics.logout failed', ex);
     }
   }
 
-  static async destroySession(): Promise<void> {
+  static destroySession(): void {
     try {
-      await this.getInstance().destroySession();
+      this.getInstance().destroySession();
     } catch (ex) {
       Logger.error('DiAnalytics.destroySession failed', ex);
     }
   }
 
-  static async addToCart(
+  static addToCart(
     url: string,
     currency: string,
     imageUrl: string,
@@ -210,8 +220,8 @@ export class DiAnalytics {
     vendor?: string,
     source?: string,
     properties?: Properties
-  ): Promise<void> {
-    return this.track(SystemEvents.AddToCart, {
+  ): void {
+    this.track(SystemEvents.AddToCart, {
       url: url,
       currency: currency,
       image_url: imageUrl,
@@ -228,7 +238,7 @@ export class DiAnalytics {
     });
   }
 
-  static async removeFromCart(
+  static removeFromCart(
     url: string,
     currency: string,
     imageUrl: string,
@@ -242,8 +252,8 @@ export class DiAnalytics {
     vendor: string,
     source: string,
     properties?: Properties
-  ): Promise<void> {
-    await this.track(SystemEvents.RemoveFromCart, {
+  ): void {
+    this.track(SystemEvents.RemoveFromCart, {
       url: url,
       currency: currency,
       image_url: imageUrl,
@@ -259,60 +269,67 @@ export class DiAnalytics {
       ...properties
     });
   }
-  static async trackCheckoutProducts(
+
+  static trackCheckoutProducts(
     checkoutId: string,
     productList: CheckoutProduct[],
-    status: Status,
-  ): Promise<void> {
-    productList.map((product) => {
-      const productProperties = {...product};
-      const customProperties = product.properties;
-      delete productProperties.properties;
-      const productPrice = status === Status.Complete ? product.price : -product.price
-      const totalPrice = productPrice * productProperties.quantity;
-      return this.track(SystemEvents.CheckoutProduct, {
-        checkout_id: checkoutId,
-        ...productProperties,
-        totalPrice: totalPrice,
-        status: status,
-        ...customProperties
+    status: Status
+  ): void {
+    try {
+      this.getInstance().touchSession();
+      productList.map((product) => {
+        const productProperties = {...product};
+        const customProperties = product.properties;
+        delete productProperties.properties;
+        const productPrice = status === Status.Complete ? product.price : -product.price;
+        const totalPrice = productPrice * productProperties.quantity;
+        this.getInstance().track(SystemEvents.CheckoutProduct, {
+          checkout_id: checkoutId,
+          ...productProperties,
+          totalPrice: totalPrice,
+          status: status,
+          ...customProperties
+        });
       });
-    })
+    } catch (ex) {
+      Logger.error('DiAnalytics.track failed', ex);
+    }
+
 
   }
 
-  static async checkout(
+  static checkout(
     checkoutId: string,
     totalPrice: number,
     url: string,
     productList: CheckoutProduct[],
     properties?: Properties
-  ): Promise<void> {
-    await this.track(SystemEvents.CheckoutOrder, {
+  ): void {
+    this.track(SystemEvents.CheckoutOrder, {
       checkout_id: checkoutId,
       total_price: totalPrice,
       url: url,
       ...properties
     });
-    await this.trackCheckoutProducts(checkoutId, productList, Status.Complete);
+    this.trackCheckoutProducts(checkoutId, productList, Status.Complete);
   }
 
-  static async cancelOrder(checkoutId: string, reason: string, productList: CheckoutProduct[], properties?: Properties): Promise<void> {
-    await this.track(SystemEvents.CancelOrder, {
+  static cancelOrder(checkoutId: string, reason: string, productList: CheckoutProduct[], properties?: Properties): void {
+    this.track(SystemEvents.CancelOrder, {
       checkout_id: checkoutId,
       reason: reason,
       ...properties
     });
-    await this.trackCheckoutProducts(checkoutId, productList, Status.Cancel);
+    this.trackCheckoutProducts(checkoutId, productList, Status.Cancel);
   }
 
-  static async returnOrder(checkoutId: string, reason: string, productList: CheckoutProduct[], properties?: Properties): Promise<void> {
-    await this.track(SystemEvents.ReturnOrder, {
+  static returnOrder(checkoutId: string, reason: string, productList: CheckoutProduct[], properties?: Properties): void {
+    this.track(SystemEvents.ReturnOrder, {
       checkout_id: checkoutId,
       reason: reason,
       ...properties
     });
-    await this.trackCheckoutProducts(checkoutId, productList, Status.Return);
+    this.trackCheckoutProducts(checkoutId, productList, Status.Return);
   }
 
   static notifyUsingCookies(title: string, message: string, allowLabel: string, declineLabel: string): void {
@@ -322,9 +339,9 @@ export class DiAnalytics {
   /**
    * @deprecated use destroy destroy session instead
    */
-  static async reset(): Promise<void> {
+  static reset(): void {
     try {
-      await this.destroySession();
+      this.destroySession();
     } catch (ex) {
       Logger.debug('DiAnalytics.reset failed', ex);
     }

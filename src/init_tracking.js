@@ -62,10 +62,12 @@
   window,
   document,
   'script',
-  'https://analytics.datainsider.co/static/js/di-web-analytics/0.8.4/index.js'
+  'https://analytics.datainsider.co/static/js/di-web-analytics/0.8.7/index.js'
 );
 
 window.DiAnalytics = window.createDiAnalytics(
-  'https://host-api/',
-  'api-key',
+  {
+    host: 'https://host-api/',
+    apiKey: 'api-key',
+  }
 );

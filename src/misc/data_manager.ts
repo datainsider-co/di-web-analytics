@@ -57,7 +57,7 @@ export class DataManager {
     localStorage.removeItem(DataManager.GLOBAL_PROPERTIES);
   }
 
-  static setUserId(userId: string): void {
+  static setCustomerId(userId: string): void {
     localStorage.setItem(DataManager.USER_ID, userId);
   }
 

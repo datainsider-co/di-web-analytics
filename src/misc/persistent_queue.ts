@@ -1,51 +1,62 @@
 import Queue from 'storage-based-queue';
 import {Message, SubmitEventWorker} from './workers';
-import {Mutex} from 'async-mutex';
 import {Event, Properties} from '../domain';
 import {Logger} from '../service/logger';
 import {DataManager} from './data_manager';
 
 Queue.workers({SubmitEventWorker});
 
-export class PersistentQueue {
-  private readonly queue = new Queue({
-    storage: 'indexeddb',
-    timeout: 500,
-    debug: false
-  });
+export enum StorageType {
+  LocalStorage = 'localStorage',
+  IndexedDB = 'indexeddb',
+  InMemory = 'inmemory',
+}
 
-  private readonly maxSize: number;
+export abstract class PersistentQueue {
+  abstract start(): void;
+
+  abstract stop(): void;
+
+  abstract add(event: string, properties: Properties): void
+}
+
+export class PersistentQueueImpl extends PersistentQueue {
+  private readonly bufferSize: number;
   private readonly flushInterval: number;
-  private readonly eventChannel = this.queue.create('event-track-channel');
-  private readonly mutex = new Mutex();
-  private events: Event[] = [];
+  private readonly eventChannel: any;
+  private bufferEvents: Event[] = [];
   private currentScheduleId: number | null = null;
 
   /**
-   * @param queueSize max size để chờ persist xuống storage
-   * @param flushInterval thời gian max để chờ persist, tính theo millis
+   * @param storageType is the storage type to use for the queue
+   * @param bufferSize max size để chờ persist xuống storage
+   * @param flushIntervalMs thời gian max để chờ persist, tính theo millis
    */
-  constructor(queueSize = 100, flushInterval = 60000) {
-    Logger.info("init PersistentQueue", {queueSize, flushInterval});
-    this.maxSize = queueSize;
-    this.flushInterval = flushInterval;
-
-    this.start();
+  constructor(storageType = StorageType.LocalStorage, bufferSize = 50, flushIntervalMs = 5000) {
+    super();
+    Logger.debug('init PersistentQueue', {queueSize: bufferSize, flushInterval: flushIntervalMs});
+    this.bufferSize = bufferSize;
+    this.flushInterval = flushIntervalMs;
+    this.eventChannel = new Queue({
+      storage: storageType,
+      timeout: 100,
+      debug: false
+    }).create('event-track-channel');
   }
 
-  private start() {
+  start() {
     Logger.debug('PersistentQueue::start');
     this.eventChannel.start();
     this.loadTempEvents();
     Logger.debug('PersistentQueue::start completed');
   }
 
-  private async loadTempEvents(): Promise<void> {
+  private loadTempEvents(): void {
     try {
       const events: Event[] = DataManager.getTemporaryEvents();
       if (events.length > 0) {
-        await this.persist(events);
-        DataManager.deleteTemporaryEvents()
+        this.persist(events);
+        DataManager.deleteTemporaryEvents();
       }
     } catch (ex) {
       Logger.error('loadTempEvents error', ex);
@@ -53,40 +64,34 @@ export class PersistentQueue {
 
   }
 
-  async stop() {
+  stop() {
     try {
-      DataManager.saveTemporaryEvents(this.events);
+      DataManager.saveTemporaryEvents(this.bufferEvents);
       this.eventChannel.stop();
-    } catch (ex){
+    } catch (ex) {
       Logger.error('PersistentQueue::stop error', ex);
     }
   }
 
-  async add(event: string, properties: Properties): Promise<void> {
-    const releaser = await this.mutex.acquire();
-    try {
-      this.events.push({
-        name: event,
-        properties: properties
-      });
+  add(event: string, properties: Properties): void {
+    this.bufferEvents.push({
+      name: event,
+      properties: properties
+    });
 
-      if (this.events.length > this.maxSize) {
-        const events = Array.from(this.events);
-        this.events = [];
-        this.persist(events);
-      } else {
-        this.schedulePersist();
-      }
-
-    } finally {
-      releaser();
+    if (this.bufferEvents.length > this.bufferSize) {
+      const events = Array.from(this.bufferEvents);
+      this.bufferEvents = [];
+      this.persist(events);
+    } else {
+      this.schedulePersist();
     }
   }
 
-  private async persist(events: Event[]): Promise<void> {
+  private persist(events: Event[]): void {
     try {
       if (events.length > 0) {
-        await this.eventChannel.add({
+        this.eventChannel.add({
           priority: 1,
           label: 'persist-event',
           createdAt: Date.now(),
@@ -105,17 +110,15 @@ export class PersistentQueue {
     if (this.currentScheduleId) {
       clearTimeout(this.currentScheduleId);
     }
-
     // add new schedule
     this.currentScheduleId = setTimeout(async () => {
-      const releaser = await this.mutex.acquire();
       try {
         // quick swap events
-        const events = Array.from(this.events);
-        this.events = [];
+        const events = Array.from(this.bufferEvents);
+        this.bufferEvents = [];
         this.persist(events);
-      } finally {
-        releaser();
+      } catch (ex) {
+        Logger.error('schedulePersist error', ex);
       }
     }, this.flushInterval);
   }

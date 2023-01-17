@@ -7,13 +7,13 @@ export class DisableAnalyticsCore extends AnalyticsCore {
     super();
   }
 
-  async enterScreen(name: string, userProps?: EventProperties): Promise<void> {
+  enterScreen(name: string, userProps?: EventProperties): void {
   }
 
   enterScreenStart(name: string): void {
   }
 
-  async exitScreen(name: string, userProps?: EventProperties): Promise<void> {
+  exitScreen(name: string, userProps?: EventProperties): void {
   }
 
   getTrackingId(): string {
@@ -25,22 +25,20 @@ export class DisableAnalyticsCore extends AnalyticsCore {
 
   setGlobalConfig(properties: Properties): void {
   }
+
   time(event: string): void {
   }
 
-  async touchSession(): Promise<any> {
-    return Promise.resolve(undefined);
+  touchSession(): void {
+
   }
 
-  track(event: string, properties: Properties): Promise<void> {
-    return Promise.resolve(undefined);
+  track(event: string, properties: Properties): void {
   }
 
-  setUserProfile(userId: string, properties: CustomerProperties): Promise<any> {
-    return Promise.resolve(undefined);
+  setUserProfile(userId: string, properties: CustomerProperties): void {
   }
 
-  destroySession(): Promise<void> {
-    return Promise.resolve(undefined);
+  destroySession(): void {
   }
 }
