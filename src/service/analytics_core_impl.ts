@@ -96,19 +96,25 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
 
   touchSession(): void {
     try {
-      const sessionInfo = TrackingSessionManager.getSession();
-      if (sessionInfo.isExpired) {
-        if (sessionInfo.sessionId) {
-          this.endSession(sessionInfo);
-        }
-        TrackingSessionManager.deleteSession();
-        this.createSession();
-      } else {
+      const sessionInfo: TrackingSessionInfo | undefined = TrackingSessionManager.getSession();
+      if (sessionInfo && sessionInfo?.isExpired) {
+        this.renewSession(sessionInfo);
+      } else if (sessionInfo && !sessionInfo?.isExpired) {
         TrackingSessionManager.updateSession(sessionInfo.sessionId);
+      } else {
+        this.createSession();
       }
     } catch (ex) {
       Logger.error('touchSession::failure', ex);
     }
+  }
+
+  private renewSession(oldSession: TrackingSessionInfo): void {
+    if (oldSession.sessionId) {
+      this.endSession(oldSession);
+    }
+    TrackingSessionManager.deleteSession();
+    this.createSession();
   }
 
   private createSession(): void {
@@ -116,8 +122,17 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
     this.track(SystemEvents.SessionCreated, properties);
   }
 
-  private endSession(sessionInfo: TrackingSessionInfo): void {
-    const properties = this.buildEndSessionTrackingData(sessionInfo);
+  private createSessionProperties(): EventProperties {
+    const properties = this.buildEventProperties(SystemEvents.SessionCreated, {});
+    const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
+    properties.di_session_id = sessionId;
+    properties.di_start_time = createdAt;
+    properties.di_timestamp = createdAt;
+    return properties;
+  }
+
+  private endSession(oldSession: TrackingSessionInfo): void {
+    const properties = this.buildEndSessionTrackingData(oldSession);
     this.track(SystemEvents.SessionEnd, properties);
   }
 
@@ -144,19 +159,6 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
   }
 
   /**
-   *
-   * @private
-   */
-  private createSessionProperties(): EventProperties {
-    const properties = this.buildEventProperties(SystemEvents.SessionCreated, {});
-    const [sessionId, createdAt, _] = TrackingSessionManager.createSession(properties);
-    properties.di_session_id = sessionId;
-    properties.di_start_time = createdAt;
-    properties.di_timestamp = createdAt;
-    return properties;
-  }
-
-  /**
    * Build session tracking data from given session info
    * @param sessionInfo
    * @private
@@ -177,7 +179,7 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
    * @private
    */
   private buildEventProperties(eventName: string, customProperties: Properties | EventProperties): EventProperties {
-    const sessionInfo = TrackingSessionManager.getSession();
+    const sessionInfo: TrackingSessionInfo | undefined = TrackingSessionManager.getSession();
 
     this.enrichScreenName(customProperties);
     this.enrichDuration(eventName, customProperties);
@@ -188,7 +190,7 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
       di_start_time: customProperties.di_start_time || Date.now(),
       di_customer_id: customProperties.di_customer_id || DataManager.getUserId() || this.getOrCreateSId(),
       di_customer_sid: customProperties.di_customer_sid || this.getOrCreateSId(),
-      di_session_id: customProperties.di_session_id || sessionInfo.sessionId,
+      di_session_id: customProperties.di_session_id || sessionInfo?.sessionId,
       app_version: LibConfig.version,
       app_name: LibConfig.platform,
       ...AnalyticsUtils.buildClientSpecifications(),
@@ -224,8 +226,10 @@ export class AnalyticsCoreImpl extends AnalyticsCore {
   }
 
   destroySession(): void {
-    const sessionInfo = TrackingSessionManager.getSession();
-    this.endSession(sessionInfo);
+    const sessionInfo: TrackingSessionInfo | undefined = TrackingSessionManager.getSession();
+    if (sessionInfo) {
+      this.endSession(sessionInfo);
+    }
     this.clearSessionData();
   }
 

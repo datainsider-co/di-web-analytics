@@ -44,28 +44,32 @@ export class TrackingSessionManager {
   }
 
   static deleteSession() {
-    const session = this.getSession();
-    if (session && session.sessionId) {
+    const session: TrackingSessionInfo | undefined = this.getSession();
+    if (session && session?.sessionId) {
       sessionStorage.removeItem(this.buildSessionStorageKey(session.sessionId));
     }
     localStorage.removeItem(TrackingSessionManager.SESSION_KEY);
   }
 
-  static getSession(): TrackingSessionInfo {
-    const dataAsJSON = localStorage.getItem(TrackingSessionManager.SESSION_KEY)
-    let sessionInfo: TrackingSessionInfo | undefined;
-    if (dataAsJSON) {
-      sessionInfo = JSON.parse(dataAsJSON) as TrackingSessionInfo;
+  static getSession(): TrackingSessionInfo | undefined {
+    try {
+      const dataAsJSON = localStorage.getItem(TrackingSessionManager.SESSION_KEY)
+      if (dataAsJSON) {
+        const trackingInfo =  JSON.parse(dataAsJSON) as TrackingSessionInfo;
+        return {
+          sessionId: trackingInfo.sessionId,
+          isExpired: this.isExpired(trackingInfo),
+          createdAt: trackingInfo.createdAt || 0,
+          expiredAt: trackingInfo.expiredAt || 0,
+          lastActivityAt: trackingInfo.lastActivityAt || 0,
+          properties: trackingInfo.properties || {}
+        }
+      } else {
+        return void 0;
+      }
+    } catch (ex) {
+      return void 0;
     }
-
-    return {
-      sessionId: sessionInfo?.sessionId,
-      isExpired: this.isExpired(sessionInfo),
-      createdAt: sessionInfo?.createdAt || 0,
-      expiredAt: sessionInfo?.expiredAt || 0,
-      lastActivityAt: sessionInfo?.lastActivityAt || 0,
-      properties: sessionInfo?.properties || {}
-    } as TrackingSessionInfo;
   }
 
   private static isExpired(sessionInfo: TrackingSessionInfo | undefined): boolean {
